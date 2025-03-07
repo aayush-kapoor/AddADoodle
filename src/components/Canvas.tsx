@@ -541,12 +541,14 @@ export const Canvas: React.FC = () => {
     }
     
     if (tool !== 'line' || !hoveredPoint) return;
-    
+
+    // Start a new line from the current point
     setDrawingState({
-      ...drawingState,
       isDrawing: true,
       startPoint: hoveredPoint,
       currentPoints: [hoveredPoint],
+      isDragging: false,
+      dragStartPoint: undefined,
       selectedLines: [],
       selectionBox: null,
       isMultiSelect: false
@@ -599,17 +601,8 @@ export const Canvas: React.FC = () => {
       return;
     }
 
-    if (hoveredPoint && drawingState.startPoint &&
-        hoveredPoint.snapX === drawingState.startPoint.snapX &&
-        hoveredPoint.snapY === drawingState.startPoint.snapY) {
-      const newLine = {
-        id: Date.now().toString(),
-        points: [...drawingState.currentPoints, drawingState.startPoint],
-        thickness: lineThickness,
-        color: selectedColor
-      };
-      addLine(newLine);
-    } else if (drawingState.currentPoints.length > 1) {
+    // Complete the current line if it has points
+    if (drawingState.currentPoints.length > 1) {
       const newLine = {
         id: Date.now().toString(),
         points: drawingState.currentPoints,
@@ -619,11 +612,13 @@ export const Canvas: React.FC = () => {
       addLine(newLine);
     }
 
+    // Reset drawing state completely
     setDrawingState({
-      ...drawingState,
       isDrawing: false,
       startPoint: null,
       currentPoints: [],
+      isDragging: false,
+      dragStartPoint: undefined,
       selectedLines: [],
       selectionBox: null,
       isMultiSelect: false
