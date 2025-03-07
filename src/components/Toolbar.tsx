@@ -22,15 +22,23 @@ export const Toolbar: React.FC = () => {
     setLineThickness,
     selectedLines,
     lines,
-    updateLineThickness
+    updateLineThickness,
+    deleteSelectedLines
   } = useStore();
 
   const [isHovered, setIsHovered] = useState(false);
 
+  const handleToolClick = (toolId: Tool) => {
+    if (toolId === 'eraser' && selectedLines.length > 0) {
+      deleteSelectedLines();
+    }
+    setTool(toolId);
+  };
+
   const tools: { id: Tool; icon: React.ReactNode; tooltip: string }[] = [
     { id: 'select', icon: <MousePointer2 size={20} />, tooltip: 'Select' },
     { id: 'line', icon: <Pencil size={20} />, tooltip: 'Draw' },
-    { id: 'eraser', icon: <Eraser size={20} />, tooltip: 'Erase' },
+    { id: 'eraser', icon: <Eraser size={20} />, tooltip: selectedLines.length > 0 ? 'Delete Selected' : 'Erase' },
   ];
 
   const showThicknessControls = (tool === 'line' || (tool === 'select' && selectedLines.length > 0)) && isHovered;
@@ -95,7 +103,7 @@ export const Toolbar: React.FC = () => {
                 key={id}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setTool(id)}
+                onClick={() => handleToolClick(id)}
                 className={`relative p-2 rounded-full transition-all group ${
                   tool === id 
                     ? theme === 'dark'
