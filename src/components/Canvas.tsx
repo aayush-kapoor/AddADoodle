@@ -374,27 +374,27 @@ export const Canvas: React.FC = () => {
     hoveredPoint, hoveredLine, tool, selectedLines, viewState
   ]);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handlePointerMove = (e: React.PointerEvent) => {
     if (!canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
     // Handle panning with hand tool
     if (tool === 'hand' && panStart) {
-      const dx = mouseX - panStart.x;
-      const dy = mouseY - panStart.y;
+      const dx = x - panStart.x;
+      const dy = y - panStart.y;
       
       updateViewState({
         offsetX: viewState.offsetX + dx,
         offsetY: viewState.offsetY + dy
       });
       
-      setPanStart({ x: mouseX, y: mouseY });
+      setPanStart({ x, y });
       return;
     }
 
-    const point = snapToGrid(mouseX, mouseY);
+    const point = snapToGrid(x, y);
     setHoveredPoint(point);
 
     // Handle selection box
@@ -469,14 +469,14 @@ export const Canvas: React.FC = () => {
     }
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handlePointerDown = (e: React.PointerEvent) => {
     if (!canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
     if (tool === 'hand') {
-      setPanStart({ x: mouseX, y: mouseY });
+      setPanStart({ x, y });
       document.body.classList.add('cursor-hand-active');
       return;
     }
@@ -517,7 +517,7 @@ export const Canvas: React.FC = () => {
           }
         }
       } else {
-        const point = snapToGrid(mouseX, mouseY);
+        const point = snapToGrid(x, y);
         
         if (!isShiftClick) {
           deselectAllLines();
@@ -559,7 +559,7 @@ export const Canvas: React.FC = () => {
     });
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = (e: React.PointerEvent) => {
     if (tool === 'hand') {
       setPanStart(null);
       document.body.classList.remove('cursor-hand-active');
@@ -632,13 +632,11 @@ export const Canvas: React.FC = () => {
 
   return (
     <div
-      className={`fixed inset-0 z-0 touch-none ${
-        tool === 'hand' && panStart ? 'cursor-hand-active' : ''
-      }`}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      className="fixed inset-0 z-0 touch-none"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
     >
       <canvas ref={canvasRef} />
     </div>
