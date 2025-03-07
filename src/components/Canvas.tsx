@@ -314,12 +314,6 @@ export const Canvas: React.FC = () => {
           ctx.lineTo(point.snapX, point.snapY);
         });
         
-        if (hoveredPoint && drawingState.startPoint &&
-            hoveredPoint.snapX === drawingState.startPoint.snapX &&
-            hoveredPoint.snapY === drawingState.startPoint.snapY) {
-          ctx.closePath();
-        }
-        
         ctx.strokeStyle = selectedColor;
         ctx.lineWidth = lineThickness;
         ctx.lineJoin = 'round';
@@ -342,15 +336,9 @@ export const Canvas: React.FC = () => {
 
       // Draw hovered point highlight
       if (hoveredPoint && (tool === 'line' || tool === 'select')) {
-        const isStartPoint = drawingState.startPoint &&
-          hoveredPoint.snapX === drawingState.startPoint.snapX &&
-          hoveredPoint.snapY === drawingState.startPoint.snapY;
-
         ctx.beginPath();
         ctx.arc(hoveredPoint.snapX, hoveredPoint.snapY, HIGHLIGHT_RADIUS / zoomLevel, 0, Math.PI * 2);
-        ctx.fillStyle = isStartPoint && drawingState.isDrawing
-          ? theme === 'dark' ? 'rgba(0, 255, 0, 0.3)' : 'rgba(0, 128, 0, 0.3)'
-          : theme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)';
+        ctx.fillStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)';
         ctx.fill();
       }
 
@@ -379,6 +367,7 @@ export const Canvas: React.FC = () => {
     const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+    const point = snapToGrid(x, y);
 
     // Handle panning with hand tool
     if (tool === 'hand' && panStart) {
@@ -394,8 +383,10 @@ export const Canvas: React.FC = () => {
       return;
     }
 
-    const point = snapToGrid(x, y);
-    setHoveredPoint(point);
+    // Update hover point for mouse interactions only
+    if (e.pointerType === 'mouse') {
+      setHoveredPoint(point);
+    }
 
     // Handle selection box
     if (tool === 'select' && drawingState.selectionBox) {
@@ -474,6 +465,7 @@ export const Canvas: React.FC = () => {
     const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+    const point = snapToGrid(x, y);
 
     if (tool === 'hand') {
       setPanStart({ x, y });
@@ -493,11 +485,11 @@ export const Canvas: React.FC = () => {
       
       if (hoveredLine) {
         if (selectedLines.includes(hoveredLine)) {
-          if (hoveredPoint) {
+          if (point) {
             setDrawingState({
               ...drawingState,
               isDragging: true,
-              dragStartPoint: hoveredPoint,
+              dragStartPoint: point,
               selectedLines: selectedLines,
               selectionBox: null,
               isMultiSelect: false
@@ -505,11 +497,11 @@ export const Canvas: React.FC = () => {
           }
         } else {
           selectLine(hoveredLine, isShiftClick);
-          if (hoveredPoint) {
+          if (point) {
             setDrawingState({
               ...drawingState,
               isDragging: true,
-              dragStartPoint: hoveredPoint,
+              dragStartPoint: point,
               selectedLines: isShiftClick ? [...selectedLines, hoveredLine] : [hoveredLine],
               selectionBox: null,
               isMultiSelect: isShiftClick
@@ -517,8 +509,6 @@ export const Canvas: React.FC = () => {
           }
         }
       } else {
-        const point = snapToGrid(x, y);
-        
         if (!isShiftClick) {
           deselectAllLines();
         }
@@ -540,13 +530,13 @@ export const Canvas: React.FC = () => {
       return;
     }
     
-    if (tool !== 'line' || !hoveredPoint) return;
+    if (tool !== 'line') return;
 
     // Start a new line from the current point
     setDrawingState({
       isDrawing: true,
-      startPoint: hoveredPoint,
-      currentPoints: [hoveredPoint],
+      startPoint: point,
+      currentPoints: [point],
       isDragging: false,
       dragStartPoint: undefined,
       selectedLines: [],
@@ -556,8 +546,8 @@ export const Canvas: React.FC = () => {
 
     // Update last active position
     updateLastActivePosition({
-      x: hoveredPoint.snapX,
-      y: hoveredPoint.snapY
+      x: point.snapX,
+      y: point.snapY
     });
   };
 
