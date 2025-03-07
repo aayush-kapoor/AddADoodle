@@ -45,3 +45,10 @@ export type ViewState = {
   offsetX: number;
   offsetY: number;
 };
+
+export type DownloadOptions = {
+  showGrid: boolean;
+  format: 'png' | 'jpeg';
+  fileName: string;
+  backgroundColor?: string;
+};

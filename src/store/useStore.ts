@@ -13,6 +13,7 @@ interface DoodleState {
   selectedLines: string[];
   viewState: ViewState;
   lastActivePosition: { x: number; y: number } | null;
+  isModalOpen: boolean;
   setTool: (tool: Tool) => void;
   addLine: (line: Line) => void;
   removeLine: (id: string) => void;
@@ -31,6 +32,7 @@ interface DoodleState {
   updateLastActivePosition: (position: { x: number; y: number } | null) => void;
   centerOnLastActive: () => void;
   deleteSelectedLines: () => void;
+  setModalOpen: (isOpen: boolean) => void;
 }
 
 export const useStore = create<DoodleState>((set) => ({
@@ -45,6 +47,7 @@ export const useStore = create<DoodleState>((set) => ({
   selectedLines: [],
   viewState: { offsetX: 0, offsetY: 0 },
   lastActivePosition: null,
+  isModalOpen: false,
   setTool: (tool) => set((state) => {
     if (tool !== 'select' && state.selectedLines.length > 0) {
       return { tool, selectedLines: [] };
@@ -180,5 +183,6 @@ export const useStore = create<DoodleState>((set) => ({
       redoStack: [],
       selectedLines: []
     };
-  })
+  }),
+  setModalOpen: (isOpen) => set({ isModalOpen: isOpen })
 }));

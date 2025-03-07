@@ -31,7 +31,8 @@ export const Canvas: React.FC = () => {
     setTool,
     setZoomLevel,
     undo,
-    redo
+    redo,
+    isModalOpen
   } = useStore();
   
   const [drawingState, setDrawingState] = useState<DrawingState>({
@@ -51,6 +52,8 @@ export const Canvas: React.FC = () => {
   const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (isModalOpen) return;
+
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
     const cmdKey = isMac ? e.metaKey : e.ctrlKey;
 
@@ -116,6 +119,7 @@ export const Canvas: React.FC = () => {
       }
     }
   }, [
+    isModalOpen,
     setTool, deselectAllLines, selectedLines, deleteSelectedLines,
     zoomLevel, setZoomLevel, undo, redo
   ]);

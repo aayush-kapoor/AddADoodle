@@ -7,10 +7,12 @@ import {
   Sun, 
   Moon,
   Minus,
-  Plus 
+  Plus,
+  Download
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { Tool } from '../types';
+import { DownloadModal } from './DownloadModal';
 
 export const Toolbar: React.FC = () => {
   const { 
@@ -27,6 +29,7 @@ export const Toolbar: React.FC = () => {
   } = useStore();
 
   const [isHovered, setIsHovered] = useState(false);
+  const [isDownloadOpen, setIsDownloadOpen] = useState(false);
 
   const handleToolClick = (toolId: Tool) => {
     if (toolId === 'eraser' && selectedLines.length > 0) {
@@ -121,6 +124,25 @@ export const Toolbar: React.FC = () => {
               </motion.button>
             ))}
 
+            {selectedLines.length > 0 && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsDownloadOpen(true)}
+                className="relative p-2 rounded-full hover:bg-white/10 transition-all group"
+              >
+                <Download size={20} />
+                <span className={`pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2 py-1 text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity delay-1000 whitespace-nowrap ${
+                  theme === 'dark' ? 'bg-white/10 text-white' : 'bg-black/10 text-black'
+                }`}>
+                  Download
+                </span>
+              </motion.button>
+            )}
+
             <AnimatePresence>
               {showThicknessControls && (
                 <motion.div 
@@ -157,6 +179,11 @@ export const Toolbar: React.FC = () => {
           </div>
         </motion.div>
       </div>
+
+      <DownloadModal
+        isOpen={isDownloadOpen}
+        onClose={() => setIsDownloadOpen(false)}
+      />
     </>
   );
 };
