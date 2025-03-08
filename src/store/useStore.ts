@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Tool, Line, Theme, Point, ViewState } from '../types';
+import { GameState } from '../types/game';
 
 interface DoodleState {
   tool: Tool;
@@ -14,6 +15,8 @@ interface DoodleState {
   viewState: ViewState;
   lastActivePosition: { x: number; y: number } | null;
   isModalOpen: boolean;
+  gameMode: boolean;
+  gameState: GameState | null;
   setTool: (tool: Tool) => void;
   addLine: (line: Line) => void;
   removeLine: (id: string) => void;
@@ -33,6 +36,8 @@ interface DoodleState {
   centerOnLastActive: () => void;
   deleteSelectedLines: () => void;
   setModalOpen: (isOpen: boolean) => void;
+  setGameMode: (active: boolean) => void;
+  setGameState: (state: GameState | null) => void;
 }
 
 export const useStore = create<DoodleState>((set) => ({
@@ -48,6 +53,8 @@ export const useStore = create<DoodleState>((set) => ({
   viewState: { offsetX: 0, offsetY: 0 },
   lastActivePosition: null,
   isModalOpen: false,
+  gameMode: false,
+  gameState: null,
   setTool: (tool) => set((state) => {
     if (tool !== 'select' && state.selectedLines.length > 0) {
       return { tool, selectedLines: [] };
@@ -184,5 +191,7 @@ export const useStore = create<DoodleState>((set) => ({
       selectedLines: []
     };
   }),
-  setModalOpen: (isOpen) => set({ isModalOpen: isOpen })
+  setModalOpen: (isOpen) => set({ isModalOpen: isOpen }),
+  setGameMode: (active) => set({ gameMode: active }),
+  setGameState: (state) => set({ gameState: state })
 }));
