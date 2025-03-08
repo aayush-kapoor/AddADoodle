@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useStore } from '../store/useStore';
 import { Point, DrawingState } from '../types';
-import { GameToolbar } from './GameToolbar.tsx';
+import { GameToolbar } from './GameToolbar';
 import { GameUndoRedo } from './GameUndoRedo';
 
 // Constants for grid configuration
@@ -11,12 +11,6 @@ const DOT_RADIUS = 2;
 const HIGHLIGHT_RADIUS = 6;
 const LINE_HOVER_THRESHOLD = 8;
 
-// UI spacing constants
-// const TOP_MARGIN = 100;    // Space for theme toggle (unchanged)
-// const LEFT_MARGIN = 60;   // Reduce from 80 to 60
-// const RIGHT_MARGIN = 15;  // Reduce from 80 to 60
-// const BOTTOM_MARGIN = 60; // Reduce from 80 to 60
-
 const calculateDynamicMargins = (width: number, height: number) => {
   let leftMargin: number, rightMargin: number, topMargin: number, bottomMargin: number;
 
@@ -24,7 +18,7 @@ const calculateDynamicMargins = (width: number, height: number) => {
   if (width < 768) {
     leftMargin = 60;
     rightMargin = 15;
-    topMargin = 100; // Larger top margin for toolbar on mobile
+    topMargin = 100;
     bottomMargin = 20;
   }
   // Tablet: 768px <= width < 1024px
@@ -45,22 +39,18 @@ const calculateDynamicMargins = (width: number, height: number) => {
   return { leftMargin, rightMargin, topMargin, bottomMargin };
 };
 
-
 export const GameCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { 
     theme, 
-    tool, 
-    lineThickness, 
-    selectedColor, 
-    lines,
-    addLine,
-    eraseLine,
+    gameTool,
+    gameLineThickness,
+    selectedColor,
+    gameLines,
+    addGameLine,
+    eraseGameLine,
     updateLastActivePosition,
-    isModalOpen,
-    undo,
-    redo,
-    setTool
+    isModalOpen
   } = useStore();
   
   const [drawingState, setDrawingState] = useState<DrawingState>({
@@ -80,63 +70,37 @@ export const GameCanvas: React.FC = () => {
   const [gridSize, setGridSize] = useState(MIN_GRID_SIZE);
   const [gridOffset, setGridOffset] = useState({ x: 0, y: 0 });
 
-  // Calculate responsive grid size and position
-//   const calculateResponsiveGrid = useCallback(() => {
-//   if (!canvasRef.current) return;
-
-//   // Calculate available space considering UI margins
-//   const availableWidth = window.innerWidth - (LEFT_MARGIN + RIGHT_MARGIN);
-//   const availableHeight = window.innerHeight - (TOP_MARGIN + BOTTOM_MARGIN);
-
-//   // Calculate the maximum grid size that will fit in the available space
-//   const maxGridDimension = Math.min(availableWidth, availableHeight);
-
-//   // Calculate the size of each grid cell to maintain proportions
-//   const newGridSize = Math.max(MIN_GRID_SIZE, Math.floor(maxGridDimension / GRID_DIMENSIONS));
-
-//   // Calculate total grid size
-//   const totalGridWidth = newGridSize * GRID_DIMENSIONS;
-//   const totalGridHeight = newGridSize * GRID_DIMENSIONS;
-
-//   // Center the grid in the available space, accounting for margins
-//   const offsetX = LEFT_MARGIN + Math.round((availableWidth - totalGridWidth) / 2);
-//   const offsetY = TOP_MARGIN + Math.round((availableHeight - totalGridHeight) / 2);
-
-//   setGridSize(newGridSize);
-//   setGridOffset({ x: offsetX, y: offsetY });
-// }, []);
-
   const calculateResponsiveGrid = useCallback(() => {
-  if (!canvasRef.current) return;
+    if (!canvasRef.current) return;
 
-  // Get window dimensions
-  const windowWidth = window.innerWidth;
-  const windowHeight = window.innerHeight;
+    // Get window dimensions
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
 
-  // Calculate dynamic margins based on screen size
-  const { leftMargin, rightMargin, topMargin, bottomMargin } = calculateDynamicMargins(windowWidth, windowHeight);
+    // Calculate dynamic margins based on screen size
+    const { leftMargin, rightMargin, topMargin, bottomMargin } = calculateDynamicMargins(windowWidth, windowHeight);
 
-  // Calculate available space considering dynamic margins
-  const availableWidth = windowWidth - (leftMargin + rightMargin);
-  const availableHeight = windowHeight - (topMargin + bottomMargin);
+    // Calculate available space considering dynamic margins
+    const availableWidth = windowWidth - (leftMargin + rightMargin);
+    const availableHeight = windowHeight - (topMargin + bottomMargin);
 
-  // Calculate the maximum grid size that will fit in the available space
-  const maxGridDimension = Math.min(availableWidth, availableHeight);
+    // Calculate the maximum grid size that will fit in the available space
+    const maxGridDimension = Math.min(availableWidth, availableHeight);
 
-  // Calculate the size of each grid cell to maintain proportions
-  const newGridSize = Math.max(MIN_GRID_SIZE, Math.floor(maxGridDimension / GRID_DIMENSIONS));
+    // Calculate the size of each grid cell to maintain proportions
+    const newGridSize = Math.max(MIN_GRID_SIZE, Math.floor(maxGridDimension / GRID_DIMENSIONS));
 
-  // Calculate total grid size
-  const totalGridWidth = newGridSize * GRID_DIMENSIONS;
-  const totalGridHeight = newGridSize * GRID_DIMENSIONS;
+    // Calculate total grid size
+    const totalGridWidth = newGridSize * GRID_DIMENSIONS;
+    const totalGridHeight = newGridSize * GRID_DIMENSIONS;
 
-  // Center the grid in the available space, accounting for dynamic margins
-  const offsetX = leftMargin + Math.round((availableWidth - totalGridWidth) / 2);
-  const offsetY = topMargin + Math.round((availableHeight - totalGridHeight) / 2);
+    // Center the grid in the available space, accounting for dynamic margins
+    const offsetX = leftMargin + Math.round((availableWidth - totalGridWidth) / 2);
+    const offsetY = topMargin + Math.round((availableHeight - totalGridHeight) / 2);
 
-  setGridSize(newGridSize);
-  setGridOffset({ x: offsetX, y: offsetY });
-}, []);
+    setGridSize(newGridSize);
+    setGridOffset({ x: offsetX, y: offsetY });
+  }, []);
 
   // Recalculate grid on window resize
   useEffect(() => {
@@ -155,11 +119,11 @@ export const GameCanvas: React.FC = () => {
       switch (e.key.toLowerCase()) {
         case 'p':
           e.preventDefault();
-          setTool('line');
+          useStore.getState().setGameTool('line');
           break;
         case 'e':
           e.preventDefault();
-          setTool('eraser');
+          useStore.getState().setGameTool('eraser');
           break;
       }
     }
@@ -168,15 +132,15 @@ export const GameCanvas: React.FC = () => {
       switch (e.key) {
         case 'z':
           e.preventDefault();
-          undo();
+          useStore.getState().gameUndo();
           break;
         case 'r':
           e.preventDefault();
-          redo();
+          useStore.getState().gameRedo();
           break;
       }
     }
-  }, [isModalOpen, setTool, undo, redo]);
+  }, [isModalOpen]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -304,7 +268,7 @@ export const GameCanvas: React.FC = () => {
       }
 
       // Draw existing lines
-      lines.forEach(line => {
+      gameLines.forEach(line => {
         if (line.points.length < 2) return;
         
         ctx.beginPath();
@@ -314,7 +278,7 @@ export const GameCanvas: React.FC = () => {
           ctx.lineTo(line.points[i].snapX + gridOffset.x, line.points[i].snapY + gridOffset.y);
         }
         
-        if (tool === 'eraser' && line.id === hoveredLine) {
+        if (gameTool === 'eraser' && line.id === hoveredLine) {
           ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 0, 0, 0.8)' : 'rgba(255, 0, 0, 0.6)';
         } else {
           ctx.strokeStyle = line.color;
@@ -343,14 +307,14 @@ export const GameCanvas: React.FC = () => {
         });
         
         ctx.strokeStyle = selectedColor;
-        ctx.lineWidth = lineThickness;
+        ctx.lineWidth = gameLineThickness;
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
         ctx.stroke();
       }
 
       // Draw hovered point highlight
-      if (hoveredPoint && tool === 'line') {
+      if (hoveredPoint && gameTool === 'line') {
         ctx.beginPath();
         ctx.arc(
           hoveredPoint.snapX + gridOffset.x,
@@ -377,8 +341,8 @@ export const GameCanvas: React.FC = () => {
       cancelAnimationFrame(animationFrame);
     };
   }, [
-    theme, lines, drawingState, lineThickness, selectedColor,
-    hoveredPoint, hoveredLine, tool, gridOffset, gridSize
+    theme, gameLines, drawingState, gameLineThickness, selectedColor,
+    hoveredPoint, hoveredLine, gameTool, gridOffset, gridSize
   ]);
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -394,15 +358,15 @@ export const GameCanvas: React.FC = () => {
     }
 
     // Handle line hovering for eraser tool
-    if (tool === 'eraser' && point) {
-      const hoveredLineId = lines.find(line => isPointNearLine(point, line.points))?.id || null;
+    if (gameTool === 'eraser' && point) {
+      const hoveredLineId = gameLines.find(line => isPointNearLine(point, line.points))?.id || null;
       setHoveredLine(hoveredLineId);
     } else {
       setHoveredLine(null);
     }
 
     // Handle line drawing
-    if (drawingState.isDrawing && tool === 'line' && point) {
+    if (drawingState.isDrawing && gameTool === 'line' && point) {
       const lastPoint = drawingState.currentPoints[drawingState.currentPoints.length - 1];
       
       if (!lastPoint) return;
@@ -436,14 +400,14 @@ export const GameCanvas: React.FC = () => {
     const y = e.clientY - rect.top;
     const point = snapToGrid(x, y);
 
-    if (tool === 'eraser') {
+    if (gameTool === 'eraser') {
       if (hoveredLine) {
-        eraseLine(hoveredLine);
+        eraseGameLine(hoveredLine);
       }
       return;
     }
     
-    if (tool !== 'line') return;
+    if (gameTool !== 'line') return;
 
     // Start a new line from the current point
     setDrawingState({
@@ -475,10 +439,10 @@ export const GameCanvas: React.FC = () => {
       const newLine = {
         id: Date.now().toString(),
         points: drawingState.currentPoints,
-        thickness: lineThickness,
+        thickness: gameLineThickness,
         color: selectedColor
       };
-      addLine(newLine);
+      addGameLine(newLine);
     }
 
     // Reset drawing state completely

@@ -4,7 +4,7 @@ import { Undo2, Redo2 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 export const GameUndoRedo: React.FC = () => {
-  const { theme, undo, redo, undoStack, redoStack } = useStore();
+  const { theme, gameUndo, gameRedo, gameUndoStack, gameRedoStack } = useStore();
 
   return (
     <motion.div
@@ -16,11 +16,11 @@ export const GameUndoRedo: React.FC = () => {
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
-        onClick={undo}
+        onClick={gameUndo}
         className={`p-2 rounded-full transition-colors ${
-          undoStack.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10'
+          gameUndoStack.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10'
         }`}
-        disabled={undoStack.length === 0}
+        disabled={gameUndoStack.length === 0}
       >
         <Undo2 size={20} />
       </motion.button>
@@ -28,11 +28,11 @@ export const GameUndoRedo: React.FC = () => {
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
-        onClick={redo}
+        onClick={gameRedo}
         className={`p-2 rounded-full transition-colors ${
-          redoStack.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10'
+          gameRedoStack.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10'
         }`}
-        disabled={redoStack.length === 0}
+        disabled={gameRedoStack.length === 0}
       >
         <Redo2 size={20} />
       </motion.button>

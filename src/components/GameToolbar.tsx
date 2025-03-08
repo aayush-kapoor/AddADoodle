@@ -4,7 +4,7 @@ import { Pencil, Eraser } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 export const GameToolbar: React.FC = () => {
-  const { theme, tool, setTool } = useStore();
+  const { theme, gameTool, setGameTool } = useStore();
 
   const tools = [
     { id: 'line' as const, icon: <Pencil size={20} /> },
@@ -23,9 +23,9 @@ export const GameToolbar: React.FC = () => {
           key={id}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setTool(id)}
+          onClick={() => setGameTool(id)}
           className={`relative p-2 rounded-full transition-all ${
-            tool === id 
+            gameTool === id 
               ? theme === 'dark'
                 ? 'bg-white/20 shadow-lg shadow-white/10'
                 : 'bg-black/20 shadow-lg shadow-black/10'
