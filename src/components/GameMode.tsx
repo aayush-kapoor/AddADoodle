@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { X, RotateCcw } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { GameCanvas } from './GameCanvas';
+import { GameHeader } from './game/GameHeader';
 import { ShapeLine } from '../types/game';
 import { supabase } from '../lib/supabase';
 
@@ -32,6 +33,7 @@ export const GameMode: React.FC = () => {
           isActive: true,
           currentAttempt: 1,
           maxAttempts: 3,
+          minLinesRequired: shape.min_lines_required,
           drawnLines: [],
           correctLines: [],
           connectedButWrongLines: [],
@@ -78,54 +80,43 @@ export const GameMode: React.FC = () => {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className={`relative w-full max-w-lg overflow-y-auto rounded-3xl shadow-2xl ${
+        className={`relative w-full h-full overflow-hidden rounded-3xl shadow-2xl ${
           theme === 'dark' ? 'glass-morphism-dark' : 'glass-morphism'
         }`}
       >
-        <div className="p-6 sm:p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold tracking-tight">Daily Doodle</h2>
-            <div className="flex items-center gap-2">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleReset}
-                className="p-2 rounded-full hover:bg-white/10 transition-colors"
-              >
-                <RotateCcw size={20} />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setGameMode(false)}
-                className="p-2 rounded-full hover:bg-white/10 transition-colors"
-              >
-                <X size={20} />
-              </motion.button>
-            </div>
+        <div className="relative h-full">
+          <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleReset}
+              className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            >
+              <RotateCcw size={20} />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setGameMode(false)}
+              className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            >
+              <X size={20} />
+            </motion.button>
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center h-[320px]">
+            <div className="flex items-center justify-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/20"></div>
             </div>
           ) : error ? (
-            <div className="flex items-center justify-center h-[320px] text-center">
+            <div className="flex items-center justify-center h-full text-center">
               <p className="text-red-500">{error}</p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <>
+              <GameHeader />
               <GameCanvas onLineDrawn={handleLineDrawn} />
-              
-              <div className="flex items-center justify-between">
-                <div className="text-sm opacity-70">
-                  Attempt {gameState?.currentAttempt} of {gameState?.maxAttempts}
-                </div>
-                <div className="text-sm opacity-70">
-                  Lines: {gameState?.drawnLines.length ?? 0}
-                </div>
-              </div>
-            </div>
+            </>
           )}
         </div>
       </motion.div>

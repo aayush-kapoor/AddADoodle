@@ -6,8 +6,8 @@ import { Point, DrawingState, SelectionBox } from '../types';
 const GRID_SIZE = 20;
 const DOT_RADIUS = 1;
 const HIGHLIGHT_RADIUS = 4;
-const CAPTURE_RADIUS = 8;
-const LINE_HOVER_THRESHOLD = 5;
+const CAPTURE_RADIUS = 2;
+const LINE_HOVER_THRESHOLD = 2;
 
 export const Canvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);

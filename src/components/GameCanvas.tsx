@@ -1,17 +1,17 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useStore } from '../store/useStore';
 import { Point, DrawingState } from '../types';
-import { GameToolbar } from './GameToolbar';
-import { GameUndoRedo } from './GameUndoRedo';
+import { GameHeader } from './game/GameHeader';
 
 // Constants for grid configuration
-const GRID_DIMENSIONS = 9; // 8x8 grid
+const GRID_DIMENSIONS = 9; // 9x9 grid
 const MIN_GRID_SIZE = 40; // Minimum size for each grid cell
 const DOT_RADIUS = 2;
 const HIGHLIGHT_RADIUS = 3; // Smaller highlight radius for better precision
 const LINE_HOVER_THRESHOLD = 2;
-const SNAP_THRESHOLD = 1; // Threshold in pixels for snapping to grid (approx. 0.1 cm, scaled by devicePixelRatio)
+const SNAP_THRESHOLD = 1; // Threshold in pixels for snapping to grid
 
+// Dynamic margins calculation based on screen size
 const calculateDynamicMargins = (width: number, height: number) => {
   let leftMargin: number, rightMargin: number, topMargin: number, bottomMargin: number;
 
@@ -19,22 +19,22 @@ const calculateDynamicMargins = (width: number, height: number) => {
   if (width < 768) {
     leftMargin = 60;
     rightMargin = 15;
-    topMargin = 100;
-    bottomMargin = 20;
+    topMargin = 70; // Increased to accommodate game info
+    bottomMargin = 80;
   }
   // Tablet: 768px <= width < 1024px
   else if (width >= 768 && width < 1024) {
     leftMargin = 80;
     rightMargin = 25;
     topMargin = 120;
-    bottomMargin = 40;
+    bottomMargin = 100;
   }
   // Desktop: width >= 1024px
   else {
     leftMargin = 100;
     rightMargin = 40;
-    topMargin = 130;
-    bottomMargin = 60;
+    topMargin = 140;
+    bottomMargin = 120;
   }
 
   return { leftMargin, rightMargin, topMargin, bottomMargin };
@@ -103,7 +103,6 @@ export const GameCanvas: React.FC = () => {
     setGridOffset({ x: offsetX, y: offsetY });
   }, []);
 
-  // Recalculate grid on window resize
   useEffect(() => {
     calculateResponsiveGrid();
     window.addEventListener('resize', calculateResponsiveGrid);
@@ -149,28 +148,35 @@ export const GameCanvas: React.FC = () => {
   }, [handleKeyDown]);
 
   const snapToGrid = (x: number, y: number): Point => {
-    const scale = window.devicePixelRatio || 1; 
-    const threshold = SNAP_THRESHOLD * scale; 
+    const scale = window.devicePixelRatio || 1;
+    const threshold = SNAP_THRESHOLD * scale;
 
+    // Adjust coordinates relative to grid offset
     const screenX = x - gridOffset.x;
     const screenY = y - gridOffset.y;
 
+    // Calculate the nearest grid position
     const gridX = Math.floor(screenX / gridSize);
     const gridY = Math.floor(screenY / gridSize);
 
+    // Calculate the exact snapped coordinates
     const snapX = gridX * gridSize;
     const snapY = gridY * gridSize;
 
+    // Calculate the distance from the mouse position to the snapped position
     const dx = Math.abs(screenX - snapX);
     const dy = Math.abs(screenY - snapY);
     const distance = Math.sqrt(dx * dx + dy * dy);
 
+    // Only snap if the distance is within the threshold
     const finalX = distance <= threshold ? snapX : screenX;
     const finalY = distance <= threshold ? snapY : screenY;
 
+    // Constrain to grid boundaries
     const constrainedGridX = Math.max(0, Math.min(GRID_DIMENSIONS - 1, Math.round(finalX / gridSize)));
     const constrainedGridY = Math.max(0, Math.min(GRID_DIMENSIONS - 1, Math.round(finalY / gridSize)));
 
+    // Convert back to final screen coordinates
     const constrainedSnapX = constrainedGridX * gridSize;
     const constrainedSnapY = constrainedGridY * gridSize;
 
@@ -184,7 +190,7 @@ export const GameCanvas: React.FC = () => {
 
   const findIntermediatePoints = (start: Point, end: Point): Point[] => {
     const points: Point[] = [];
-    const dx = end.x - start.x; // Use raw x/y for smoother interpolation
+    const dx = end.x - start.x;
     const dy = end.y - start.y;
     const steps = Math.max(Math.abs(dx / gridSize), Math.abs(dy / gridSize));
 
@@ -471,6 +477,7 @@ export const GameCanvas: React.FC = () => {
 
   return (
     <>
+      <GameHeader />
       <div
         className="fixed inset-0 z-0 touch-none"
         onPointerDown={handlePointerDown}
@@ -480,8 +487,6 @@ export const GameCanvas: React.FC = () => {
       >
         <canvas ref={canvasRef} />
       </div>
-      <GameToolbar />
-      <GameUndoRedo />
     </>
   );
 };
