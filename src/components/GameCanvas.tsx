@@ -5,11 +5,12 @@ import { GameToolbar } from './GameToolbar';
 import { GameUndoRedo } from './GameUndoRedo';
 
 // Constants for grid configuration
-const GRID_DIMENSIONS = 8; // 8x8 grid
+const GRID_DIMENSIONS = 9; // 8x8 grid
 const MIN_GRID_SIZE = 40; // Minimum size for each grid cell
 const DOT_RADIUS = 2;
-const HIGHLIGHT_RADIUS = 6;
-const LINE_HOVER_THRESHOLD = 8;
+const HIGHLIGHT_RADIUS = 3; // Smaller highlight radius for better precision
+const LINE_HOVER_THRESHOLD = 2;
+const SNAP_THRESHOLD = 1; // Threshold in pixels for snapping to grid (approx. 0.1 cm, scaled by devicePixelRatio)
 
 const calculateDynamicMargins = (width: number, height: number) => {
   let leftMargin: number, rightMargin: number, topMargin: number, bottomMargin: number;
@@ -148,40 +149,49 @@ export const GameCanvas: React.FC = () => {
   }, [handleKeyDown]);
 
   const snapToGrid = (x: number, y: number): Point => {
-    // Adjust coordinates relative to grid offset
+    const scale = window.devicePixelRatio || 1; 
+    const threshold = SNAP_THRESHOLD * scale; 
+
     const screenX = x - gridOffset.x;
     const screenY = y - gridOffset.y;
-    
-    // Calculate grid position
-    const gridX = Math.round(screenX / gridSize);
-    const gridY = Math.round(screenY / gridSize);
-    
-    // Constrain to grid boundaries
-    const constrainedGridX = Math.max(0, Math.min(GRID_DIMENSIONS - 1, gridX));
-    const constrainedGridY = Math.max(0, Math.min(GRID_DIMENSIONS - 1, gridY));
-    
-    // Convert back to screen coordinates
-    const snapX = constrainedGridX * gridSize;
-    const snapY = constrainedGridY * gridSize;
-    
+
+    const gridX = Math.floor(screenX / gridSize);
+    const gridY = Math.floor(screenY / gridSize);
+
+    const snapX = gridX * gridSize;
+    const snapY = gridY * gridSize;
+
+    const dx = Math.abs(screenX - snapX);
+    const dy = Math.abs(screenY - snapY);
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    const finalX = distance <= threshold ? snapX : screenX;
+    const finalY = distance <= threshold ? snapY : screenY;
+
+    const constrainedGridX = Math.max(0, Math.min(GRID_DIMENSIONS - 1, Math.round(finalX / gridSize)));
+    const constrainedGridY = Math.max(0, Math.min(GRID_DIMENSIONS - 1, Math.round(finalY / gridSize)));
+
+    const constrainedSnapX = constrainedGridX * gridSize;
+    const constrainedSnapY = constrainedGridY * gridSize;
+
     return {
-      x: screenX,
-      y: screenY,
-      snapX,
-      snapY
+      x: finalX,
+      y: finalY,
+      snapX: constrainedSnapX,
+      snapY: constrainedSnapY
     };
   };
 
   const findIntermediatePoints = (start: Point, end: Point): Point[] => {
     const points: Point[] = [];
-    const dx = end.snapX - start.snapX;
-    const dy = end.snapY - start.snapY;
+    const dx = end.x - start.x; // Use raw x/y for smoother interpolation
+    const dy = end.y - start.y;
     const steps = Math.max(Math.abs(dx / gridSize), Math.abs(dy / gridSize));
-    
+
     for (let i = 1; i <= steps; i++) {
       const t = i / steps;
-      const x = start.snapX + dx * t;
-      const y = start.snapY + dy * t;
+      const x = start.x + dx * t;
+      const y = start.y + dy * t;
       points.push(snapToGrid(x + gridOffset.x, y + gridOffset.y));
     }
     return points;
