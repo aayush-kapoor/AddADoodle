@@ -70,7 +70,7 @@ export const useStore = create<DoodleState>()(
       // Main Canvas Initial State
       tool: 'line',
       lines: [],
-      lineThickness: 2,
+      lineThickness: 3,
       selectedColor: '#FFFFFF',
       zoomLevel: 1,
       undoStack: [],
@@ -83,7 +83,7 @@ export const useStore = create<DoodleState>()(
       // Game Canvas Initial State
       gameTool: 'line',
       gameLines: [],
-      gameLineThickness: 2,
+      gameLineThickness: 4,
       gameUndoStack: [],
       gameRedoStack: [],
       gameMode: false,
