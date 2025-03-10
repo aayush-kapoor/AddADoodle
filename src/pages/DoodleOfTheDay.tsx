@@ -11,7 +11,7 @@ import { GameSubmitButton } from '../components/GameSubmitButton';
 import { supabase } from '../lib/supabase';
 
 export const DoodleOfTheDay: React.FC = () => {
-  const { theme, toggleTheme, gameState, setGameState } = useStore();
+  const { theme, toggleTheme, gameState, setGameState, gameLines, gameUndoStack, clearGameLines } = useStore();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,12 +56,8 @@ export const DoodleOfTheDay: React.FC = () => {
   }, [setGameState]);
 
   const handleReset = () => {
-    if (!gameState) return;
-
-    setGameState({
-      ...gameState,
-      drawnLines: []
-    });
+    if (!gameState || gameLines.length === 0) return;
+    clearGameLines();
   };
 
   return (
@@ -112,7 +108,10 @@ export const DoodleOfTheDay: React.FC = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleReset}
-            className="relative p-2 rounded-full hover:bg-white/10 transition-colors group"
+            className={`relative p-2 rounded-full hover:bg-white/10 transition-colors group ${
+              gameLines.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            disabled={gameLines.length === 0}
           >
             <RotateCcw size={20} />
           </motion.button>

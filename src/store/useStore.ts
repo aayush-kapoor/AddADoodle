@@ -59,6 +59,7 @@ interface DoodleState {
   eraseGameLine: (id: string) => void;
   setGameMode: (active: boolean) => void;
   setGameState: (state: GameState | null) => void;
+  clearGameLines: () => void;
 
   // Shared Actions
   toggleTheme: () => void;
@@ -220,6 +221,11 @@ export const useStore = create<DoodleState>()(
       }),
       eraseGameLine: (id) => set((state) => ({
         gameLines: state.gameLines.filter(line => line.id !== id),
+        gameUndoStack: [...state.gameUndoStack, state.gameLines],
+        gameRedoStack: []
+      })),
+      clearGameLines: () => set((state) => ({
+        gameLines: [],
         gameUndoStack: [...state.gameUndoStack, state.gameLines],
         gameRedoStack: []
       })),
