@@ -3,30 +3,38 @@ import { motion } from 'framer-motion';
 import { useStore } from '../../store/useStore';
 import { Line } from '../../types';
 
-const countGridLines = (lines: Line[]): number => {
-  let count = 0;
+const countUniqueGridLines = (lines: Line[]): number => {
+
+  const uniqueLines = new Set<string>();
   
   for (const line of lines) {
     if (line.points.length < 2) continue;
     
-    // Count segments between consecutive grid points
     for (let i = 0; i < line.points.length - 1; i++) {
       const current = line.points[i];
       const next = line.points[i + 1];
       
       // Only count if both points are on grid intersections
-      if (
-        current.x === current.snapX && 
-        current.y === current.snapY &&
-        next.x === next.snapX && 
-        next.y === next.snapY
-      ) {
-        count++;
-      }
+      // if (
+      //   current.x === current.snapX && 
+      //   current.y === current.snapY &&
+      //   next.x === next.snapX && 
+      //   next.y === next.snapY
+      // ) {
+        // Create a unique key for this line segment
+        // Sort the points so (0,0)-(1,1) is the same as (1,1)-(0,0)
+      const x1 = Math.min(current.snapX, next.snapX);
+      const y1 = Math.min(current.snapY, next.snapY);
+      const x2 = Math.max(current.snapX, next.snapX);
+      const y2 = Math.max(current.snapY, next.snapY);
+      
+      const lineKey = `${x1},${y1}-${x2},${y2}`;
+      uniqueLines.add(lineKey);
+    // }
     }
   }
   
-  return count;
+  return uniqueLines.size;
 };
 
 export const GameHeader: React.FC = () => {
@@ -34,7 +42,7 @@ export const GameHeader: React.FC = () => {
 
   if (!gameState) return null;
 
-  const lineCount = countGridLines(gameLines);
+  const lineCount = countUniqueGridLines(gameLines);
 
   return (
     <div className="fixed top-0 left-0 w-full flex justify-center items-center pt-20 sm:pt-20 z-20 pointer-events-none">
