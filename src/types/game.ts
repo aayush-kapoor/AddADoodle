@@ -17,8 +17,15 @@ export interface ShapeLine {
 }
 
 export interface GridPoint {
-  x: number;
-  y: number;
+  x: number; // Grid coordinate (0-4)
+  y: number; // Grid coordinate (0-4)
+}
+
+export interface GameLine {
+  id: string;
+  points: GridPoint[];
+  thickness: number;
+  color: string;
 }
 
 export interface Attempt {
@@ -36,9 +43,10 @@ export interface GameState {
   currentAttempt: number;
   maxAttempts: number;
   minLinesRequired?: number;
-  drawnLines: ShapeLine[];
-  correctLines: number[];
-  connectedButWrongLines: number[];
-  wrongLines: number[];
+  drawnLines: GameLine[];
+  correctLines: string[];
+  connectedButWrongLines: string[];
+  wrongLines: string[];
   timeLeft?: number;
+  gridData?: ShapeGridData;
 }

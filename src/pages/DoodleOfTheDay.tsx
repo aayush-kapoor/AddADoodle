@@ -41,7 +41,8 @@ export const DoodleOfTheDay: React.FC = () => {
           drawnLines: [],
           correctLines: [],
           connectedButWrongLines: [],
-          wrongLines: []
+          wrongLines: [],
+          gridData: shape.grid_data
         });
 
       } catch (err) {

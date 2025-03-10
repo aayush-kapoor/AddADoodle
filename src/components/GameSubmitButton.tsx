@@ -2,51 +2,104 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import { Line } from '../types';
+import { GameLine, GridPoint } from '../types/game';
 
-const countGridLines = (lines: Line[]): number => {
-  let count = 0;
+const countUniqueGridLines = (lines: GameLine[]): number => {
+  const uniqueLines = new Set<string>();
   
   for (const line of lines) {
     if (line.points.length < 2) continue;
     
-    // Count segments between consecutive grid points
     for (let i = 0; i < line.points.length - 1; i++) {
       const current = line.points[i];
       const next = line.points[i + 1];
       
-      // Only count if both points are on grid intersections
-      if (
-        current.x === current.snapX && 
-        current.y === current.snapY &&
-        next.x === next.snapX && 
-        next.y === next.snapY
-      ) {
-        count++;
-      }
+      // Create a unique key by sorting the points as tuples
+      const points = [
+        { x: current.x, y: current.y },
+        { x: next.x, y: next.y }
+      ].sort((a, b) => a.x - b.x || a.y - b.y); // Sort by x, then y if x is equal
+      
+      // Generate the key using the sorted points
+      const lineKey = `${points[0].x},${points[0].y}-${points[1].x},${points[1].y}`;
+      // console.log(`Generated key for (${current.x},${current.y}) to (${next.x},${next.y}): ${lineKey}`);
+      uniqueLines.add(lineKey);
     }
   }
   
-  return count;
+  return uniqueLines.size;
 };
+
+
+const validateLines = (drawnLines: GameLine[], solutionData: any) => {
+  const uniqueDrawnLines = new Set<string>();
+  const correctLines: string[] = [];
+  const wrongLines: string[] = [];
+
+  // Create a set of solution lines using grid coordinates
+  const solutionLines = new Set<string>();
+  solutionData.lines.forEach((line: any) => {
+    const points = [
+      { x: line.start.x, y: line.start.y },
+      { x: line.end.x, y: line.end.y }
+    ].sort((a, b) => a.x - b.x || a.y - b.y); // Sort by x, then y if x is equal
+    
+    // Generate the key using the sorted points
+    const lineKey = `${points[0].x},${points[0].y}-${points[1].x},${points[1].y}`;
+    solutionLines.add(lineKey);
+  });
+
+  // Check each drawn line
+  for (const line of drawnLines) {
+    if (line.points.length < 2) continue;
+
+    for (let i = 0; i < line.points.length - 1; i++) {
+      const current = line.points[i];
+      const next = line.points[i + 1];
+
+      // Create a unique key by sorting the points as tuples
+      const points = [
+        { x: current.x, y: current.y },
+        { x: next.x, y: next.y }
+      ].sort((a, b) => a.x - b.x || a.y - b.y); // Sort by x, then y if x is equal
+      
+      // Generate the key using the sorted points
+      const lineKey = `${points[0].x},${points[0].y}-${points[1].x},${points[1].y}`;
+      
+      if (!uniqueDrawnLines.has(lineKey)) {
+        uniqueDrawnLines.add(lineKey);
+        if (solutionLines.has(lineKey)) {
+          correctLines.push(line.id);
+        } else {
+          wrongLines.push(line.id);
+        }
+      }
+    }
+  }
+
+  return { correctLines, wrongLines, uniqueLineCount: uniqueDrawnLines.size
+  };
+};
+
 
 export const GameSubmitButton: React.FC = () => {
   const { theme, gameState, setGameState, gameLines } = useStore();
-  const lineCount = countGridLines(gameLines);
+  const lineCount = countUniqueGridLines(gameLines);
   const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
   const handleSubmit = () => {
     if (!gameState) return;
 
-    // TODO: Add logic to check the drawn lines against the solution
-    const isCorrect = false; // This will be replaced with actual validation logic
-    
+    // Validate the drawn lines against the solution
+    const { correctLines, wrongLines, uniqueLineCount } = validateLines(gameLines, gameState.gridData);
+
+    // Update the game state with the results
     setGameState({
       ...gameState,
       currentAttempt: gameState.currentAttempt + 1,
-      drawnLines: [],
-      correctLines: isCorrect ? [...gameState.correctLines, ...gameLines.map(l => l.id)] : gameState.correctLines,
-      wrongLines: !isCorrect ? [...gameState.wrongLines, ...gameLines.map(l => l.id)] : gameState.wrongLines
+      correctLines: [...gameState.correctLines, ...correctLines],
+      wrongLines: [...gameState.wrongLines, ...wrongLines],
+      drawnLines: [...gameState.drawnLines, ...gameLines]
     });
   };
 

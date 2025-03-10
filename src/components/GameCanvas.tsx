@@ -2,35 +2,29 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useStore } from '../store/useStore';
 import { Point, DrawingState } from '../types';
 import { GameHeader } from './game/GameHeader';
+import { GridPoint } from '../types/game';
 
 // Constants for grid configuration
-const GRID_DIMENSIONS = 5; // 9x9 grid
-const MIN_GRID_SIZE = 40; // Minimum size for each grid cell
+const GRID_DIMENSIONS = 5;
+const MIN_GRID_SIZE = 40;
 const DOT_RADIUS = 2;
-const HIGHLIGHT_RADIUS = 3; // Smaller highlight radius for better precision
+const HIGHLIGHT_RADIUS = 3;
 const LINE_HOVER_THRESHOLD = 2;
-const SNAP_THRESHOLD = 1; // Threshold in pixels for snapping to grid
 
-// Dynamic margins calculation based on screen size
 const calculateDynamicMargins = (width: number, height: number) => {
   let leftMargin: number, rightMargin: number, topMargin: number, bottomMargin: number;
 
-  // Mobile: width < 768px
   if (width < 768) {
     leftMargin = 60;
     rightMargin = 0;
-    topMargin = 150; // Increased to accommodate game info
+    topMargin = 150;
     bottomMargin = 80;
-  }
-  // Tablet: 768px <= width < 1024px
-  else if (width >= 768 && width < 1024) {
+  } else if (width >= 768 && width < 1024) {
     leftMargin = 80;
     rightMargin = 25;
     topMargin = 160;
     bottomMargin = 100;
-  }
-  // Desktop: width >= 1024px
-  else {
+  } else {
     leftMargin = 100;
     rightMargin = 0;
     topMargin = 200;
@@ -51,7 +45,8 @@ export const GameCanvas: React.FC = () => {
     addGameLine,
     eraseGameLine,
     updateLastActivePosition,
-    isModalOpen
+    isModalOpen,
+    gameState
   } = useStore();
   
   const [drawingState, setDrawingState] = useState<DrawingState>({
@@ -66,7 +61,7 @@ export const GameCanvas: React.FC = () => {
     isPanning: false
   });
   
-  const [hoveredPoint, setHoveredPoint] = useState<Point | null>(null);
+  const [hoveredPoint, setHoveredPoint] = useState<GridPoint | null>(null);
   const [hoveredLine, setHoveredLine] = useState<string | null>(null);
   const [gridSize, setGridSize] = useState(MIN_GRID_SIZE);
   const [gridOffset, setGridOffset] = useState({ x: 0, y: 0 });
@@ -74,28 +69,20 @@ export const GameCanvas: React.FC = () => {
   const calculateResponsiveGrid = useCallback(() => {
     if (!canvasRef.current) return;
 
-    // Get window dimensions
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
 
-    // Calculate dynamic margins based on screen size
     const { leftMargin, rightMargin, topMargin, bottomMargin } = calculateDynamicMargins(windowWidth, windowHeight);
 
-    // Calculate available space considering dynamic margins
     const availableWidth = windowWidth - (leftMargin + rightMargin);
     const availableHeight = windowHeight - (topMargin + bottomMargin);
 
-    // Calculate the maximum grid size that will fit in the available space
     const maxGridDimension = Math.min(availableWidth, availableHeight);
-
-    // Calculate the size of each grid cell to maintain proportions
     const newGridSize = Math.max(MIN_GRID_SIZE, Math.floor(maxGridDimension / GRID_DIMENSIONS));
 
-    // Calculate total grid size
     const totalGridWidth = newGridSize * GRID_DIMENSIONS;
     const totalGridHeight = newGridSize * GRID_DIMENSIONS;
 
-    // Center the grid in the available space, accounting for dynamic margins
     const offsetX = leftMargin + Math.round((availableWidth - totalGridWidth) / 2);
     const offsetY = topMargin + Math.round((availableHeight - totalGridHeight) / 2);
 
@@ -147,100 +134,78 @@ export const GameCanvas: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  const snapToGrid = (x: number, y: number): Point => {
-    const scale = window.devicePixelRatio || 1;
-    const threshold = SNAP_THRESHOLD * scale;
-
-    // Adjust coordinates relative to grid offset
+  // Convert screen coordinates to grid coordinates
+  const screenToGrid = (x: number, y: number): GridPoint => {
     const screenX = x - gridOffset.x;
     const screenY = y - gridOffset.y;
-
-    // Calculate the nearest grid position
-    const gridX = Math.floor(screenX / gridSize);
-    const gridY = Math.floor(screenY / gridSize);
-
-    // Calculate the exact snapped coordinates
-    const snapX = gridX * gridSize;
-    const snapY = gridY * gridSize;
-
-    // Calculate the distance from the mouse position to the snapped position
-    const dx = Math.abs(screenX - snapX);
-    const dy = Math.abs(screenY - snapY);
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    // Only snap if the distance is within the threshold
-    const finalX = distance <= threshold ? snapX : screenX;
-    const finalY = distance <= threshold ? snapY : screenY;
-
-    // Constrain to grid boundaries
-    const constrainedGridX = Math.max(0, Math.min(GRID_DIMENSIONS - 1, Math.round(finalX / gridSize)));
-    const constrainedGridY = Math.max(0, Math.min(GRID_DIMENSIONS - 1, Math.round(finalY / gridSize)));
-
-    // Convert back to final screen coordinates
-    const constrainedSnapX = constrainedGridX * gridSize;
-    const constrainedSnapY = constrainedGridY * gridSize;
-
+    
+    const gridX = Math.round(screenX / gridSize);
+    const gridY = Math.round(screenY / gridSize);
+    
     return {
-      x: finalX,
-      y: finalY,
-      snapX: constrainedSnapX,
-      snapY: constrainedSnapY
+      x: Math.max(0, Math.min(GRID_DIMENSIONS - 1, gridX)),
+      y: Math.max(0, Math.min(GRID_DIMENSIONS - 1, gridY))
     };
   };
 
-  const findIntermediatePoints = (start: Point, end: Point): Point[] => {
-    const points: Point[] = [];
+  // Convert grid coordinates to screen coordinates
+  const gridToScreen = (point: GridPoint): Point => {
+    return {
+      x: point.x * gridSize + gridOffset.x,
+      y: point.y * gridSize + gridOffset.y,
+      snapX: point.x * gridSize,
+      snapY: point.y * gridSize
+    };
+  };
+
+  const findIntermediateGridPoints = (start: GridPoint, end: GridPoint): GridPoint[] => {
+    const points: GridPoint[] = [];
     const dx = end.x - start.x;
     const dy = end.y - start.y;
-    const steps = Math.max(Math.abs(dx / gridSize), Math.abs(dy / gridSize));
-
+    const steps = Math.max(Math.abs(dx), Math.abs(dy));
+    
     for (let i = 1; i <= steps; i++) {
       const t = i / steps;
-      const x = start.x + dx * t;
-      const y = start.y + dy * t;
-      points.push(snapToGrid(x + gridOffset.x, y + gridOffset.y));
+      const x = Math.round(start.x + dx * t);
+      const y = Math.round(start.y + dy * t);
+      points.push({ x, y });
     }
+    
     return points;
   };
 
-  const getDistanceToLineSegment = (point: Point, start: Point, end: Point): number => {
-    const A = point.x - start.snapX;
-    const B = point.y - start.snapY;
-    const C = end.snapX - start.snapX;
-    const D = end.snapY - start.snapY;
-
-    const dot = A * C + B * D;
-    const lenSq = C * C + D * D;
-    let param = -1;
-
-    if (lenSq !== 0) param = dot / lenSq;
-
-    let xx, yy;
-
-    if (param < 0) {
-      xx = start.snapX;
-      yy = start.snapY;
-    } else if (param > 1) {
-      xx = end.snapX;
-      yy = end.snapY;
-    } else {
-      xx = start.snapX + param * C;
-      yy = start.snapY + param * D;
-    }
-
-    const dx = point.x - xx;
-    const dy = point.y - yy;
-    return Math.sqrt(dx * dx + dy * dy);
-  };
-
-  const isPointNearLine = (point: Point, linePoints: Point[]): boolean => {
+  const isPointNearLine = (point: GridPoint, linePoints: GridPoint[]): boolean => {
     for (let i = 0; i < linePoints.length - 1; i++) {
       const start = linePoints[i];
       const end = linePoints[i + 1];
       
-      const distance = getDistanceToLineSegment(point, start, end);
-      if (distance < LINE_HOVER_THRESHOLD) {
+      // For grid-based lines, we can use simpler distance calculation
+      if (
+        (point.x === start.x && point.y === start.y) ||
+        (point.x === end.x && point.y === end.y)
+      ) {
         return true;
+      }
+      
+      // Check if point lies on the line segment
+      if (
+        point.x >= Math.min(start.x, end.x) &&
+        point.x <= Math.max(start.x, end.x) &&
+        point.y >= Math.min(start.y, end.y) &&
+        point.y <= Math.max(start.y, end.y)
+      ) {
+        // For straight lines only
+        if (start.x === end.x || start.y === end.y) {
+          return true;
+        }
+        // For diagonal lines
+        if (Math.abs(start.x - end.x) === Math.abs(start.y - end.y)) {
+          const dx = end.x - start.x;
+          const dy = end.y - start.y;
+          const slope = dy / dx;
+          const expectedY = start.y + slope * (point.x - start.x);
+          return point.y === Math.round(expectedY);
+        }
       }
     }
     return false;
@@ -271,11 +236,9 @@ export const GameCanvas: React.FC = () => {
       // Draw grid dots
       for (let x = 0; x < GRID_DIMENSIONS; x++) {
         for (let y = 0; y < GRID_DIMENSIONS; y++) {
-          const dotX = x * gridSize + gridOffset.x;
-          const dotY = y * gridSize + gridOffset.y;
-          
+          const screenPoint = gridToScreen({ x, y });
           ctx.beginPath();
-          ctx.arc(dotX, dotY, DOT_RADIUS, 0, Math.PI * 2);
+          ctx.arc(screenPoint.x, screenPoint.y, DOT_RADIUS, 0, Math.PI * 2);
           ctx.fillStyle = theme === 'dark'
             ? 'rgba(255, 255, 255, 0.3)'
             : 'rgba(0, 0, 0, 0.3)';
@@ -283,18 +246,25 @@ export const GameCanvas: React.FC = () => {
         }
       }
 
-      // Draw existing lines
+      // Draw existing lines with validation feedback
       gameLines.forEach(line => {
         if (line.points.length < 2) return;
         
+        const screenStart = gridToScreen(line.points[0]);
         ctx.beginPath();
-        ctx.moveTo(line.points[0].snapX + gridOffset.x, line.points[0].snapY + gridOffset.y);
+        ctx.moveTo(screenStart.x, screenStart.y);
         
         for (let i = 1; i < line.points.length; i++) {
-          ctx.lineTo(line.points[i].snapX + gridOffset.x, line.points[i].snapY + gridOffset.y);
+          const screenPoint = gridToScreen(line.points[i]);
+          ctx.lineTo(screenPoint.x, screenPoint.y);
         }
-        
-        if (gameTool === 'eraser' && line.id === hoveredLine) {
+
+        // Determine line color based on validation state
+        if (gameState?.correctLines.includes(line.id)) {
+          ctx.strokeStyle = theme === 'dark' ? 'rgba(0, 255, 128, 0.8)' : 'rgba(0, 200, 100, 0.8)';
+        } else if (gameState?.wrongLines.includes(line.id)) {
+          ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 64, 64, 0.8)' : 'rgba(255, 0, 0, 0.6)';
+        } else if (gameTool === 'eraser' && line.id === hoveredLine) {
           ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 0, 0, 0.8)' : 'rgba(255, 0, 0, 0.6)';
         } else {
           ctx.strokeStyle = line.color;
@@ -308,18 +278,14 @@ export const GameCanvas: React.FC = () => {
 
       // Draw current line preview
       if (drawingState.isDrawing && drawingState.currentPoints.length > 0) {
+        const screenStart = gridToScreen(drawingState.currentPoints[0]);
         ctx.beginPath();
-        ctx.moveTo(
-          drawingState.currentPoints[0].snapX + gridOffset.x,
-          drawingState.currentPoints[0].snapY + gridOffset.y
-        );
+        ctx.moveTo(screenStart.x, screenStart.y);
         
         drawingState.currentPoints.forEach((point, i) => {
           if (i === 0) return;
-          ctx.lineTo(
-            point.snapX + gridOffset.x,
-            point.snapY + gridOffset.y
-          );
+          const screenPoint = gridToScreen(point);
+          ctx.lineTo(screenPoint.x, screenPoint.y);
         });
         
         ctx.strokeStyle = selectedColor;
@@ -331,14 +297,9 @@ export const GameCanvas: React.FC = () => {
 
       // Draw hovered point highlight
       if (hoveredPoint && gameTool === 'line') {
+        const screenPoint = gridToScreen(hoveredPoint);
         ctx.beginPath();
-        ctx.arc(
-          hoveredPoint.snapX + gridOffset.x,
-          hoveredPoint.snapY + gridOffset.y,
-          HIGHLIGHT_RADIUS,
-          0,
-          Math.PI * 2
-        );
+        ctx.arc(screenPoint.x, screenPoint.y, HIGHLIGHT_RADIUS, 0, Math.PI * 2);
         ctx.fillStyle = theme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)';
         ctx.fill();
       }
@@ -358,7 +319,7 @@ export const GameCanvas: React.FC = () => {
     };
   }, [
     theme, gameLines, drawingState, gameLineThickness, selectedColor,
-    hoveredPoint, hoveredLine, gameTool, gridOffset, gridSize
+    hoveredPoint, hoveredLine, gameTool, gridOffset, gridSize, gameState
   ]);
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -366,30 +327,27 @@ export const GameCanvas: React.FC = () => {
     const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const point = snapToGrid(x, y);
+    const gridPoint = screenToGrid(x, y);
 
-    // Update hover point for mouse interactions only
     if (e.pointerType === 'mouse') {
-      setHoveredPoint(point);
+      setHoveredPoint(gridPoint);
     }
 
-    // Handle line hovering for eraser tool
-    if (gameTool === 'eraser' && point) {
-      const hoveredLineId = gameLines.find(line => isPointNearLine(point, line.points))?.id || null;
+    if (gameTool === 'eraser' && gridPoint) {
+      const hoveredLineId = gameLines.find(line => isPointNearLine(gridPoint, line.points))?.id || null;
       setHoveredLine(hoveredLineId);
     } else {
       setHoveredLine(null);
     }
 
-    // Handle line drawing
-    if (drawingState.isDrawing && gameTool === 'line' && point) {
+    if (drawingState.isDrawing && gameTool === 'line' && gridPoint) {
       const lastPoint = drawingState.currentPoints[drawingState.currentPoints.length - 1];
       
       if (!lastPoint) return;
 
       if (drawingState.currentPoints.length > 1) {
         const secondLastPoint = drawingState.currentPoints[drawingState.currentPoints.length - 2];
-        if (point.snapX === secondLastPoint.snapX && point.snapY === secondLastPoint.snapY) {
+        if (gridPoint.x === secondLastPoint.x && gridPoint.y === secondLastPoint.y) {
           setDrawingState(prev => ({
             ...prev,
             currentPoints: prev.currentPoints.slice(0, -1)
@@ -398,7 +356,7 @@ export const GameCanvas: React.FC = () => {
         }
       }
 
-      const intermediatePoints = findIntermediatePoints(lastPoint, point);
+      const intermediatePoints = findIntermediateGridPoints(lastPoint, gridPoint);
       
       if (intermediatePoints.length > 0) {
         setDrawingState(prev => ({
@@ -414,7 +372,7 @@ export const GameCanvas: React.FC = () => {
     const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const point = snapToGrid(x, y);
+    const gridPoint = screenToGrid(x, y);
 
     if (gameTool === 'eraser') {
       if (hoveredLine) {
@@ -425,11 +383,10 @@ export const GameCanvas: React.FC = () => {
     
     if (gameTool !== 'line') return;
 
-    // Start a new line from the current point
     setDrawingState({
       isDrawing: true,
-      startPoint: point,
-      currentPoints: [point],
+      startPoint: gridPoint,
+      currentPoints: [gridPoint],
       isDragging: false,
       dragStartPoint: undefined,
       selectedLines: [],
@@ -438,10 +395,9 @@ export const GameCanvas: React.FC = () => {
       isPanning: false
     });
 
-    // Update last active position
     updateLastActivePosition({
-      x: point.snapX,
-      y: point.snapY
+      x: gridPoint.x,
+      y: gridPoint.y
     });
   };
 
@@ -450,7 +406,7 @@ export const GameCanvas: React.FC = () => {
       return;
     }
 
-    // Complete the current line if it has points
+    // JUST TO SAVE
     if (drawingState.currentPoints.length > 1) {
       const newLine = {
         id: Date.now().toString(),
@@ -461,7 +417,6 @@ export const GameCanvas: React.FC = () => {
       addGameLine(newLine);
     }
 
-    // Reset drawing state completely
     setDrawingState({
       isDrawing: false,
       startPoint: null,
