@@ -4,7 +4,7 @@ import { Point, DrawingState } from '../types';
 import { GameHeader } from './game/GameHeader';
 
 // Constants for grid configuration
-const GRID_DIMENSIONS = 9; // 9x9 grid
+const GRID_DIMENSIONS = 5; // 9x9 grid
 const MIN_GRID_SIZE = 40; // Minimum size for each grid cell
 const DOT_RADIUS = 2;
 const HIGHLIGHT_RADIUS = 3; // Smaller highlight radius for better precision
@@ -18,22 +18,22 @@ const calculateDynamicMargins = (width: number, height: number) => {
   // Mobile: width < 768px
   if (width < 768) {
     leftMargin = 60;
-    rightMargin = 15;
-    topMargin = 70; // Increased to accommodate game info
+    rightMargin = 0;
+    topMargin = 150; // Increased to accommodate game info
     bottomMargin = 80;
   }
   // Tablet: 768px <= width < 1024px
   else if (width >= 768 && width < 1024) {
     leftMargin = 80;
     rightMargin = 25;
-    topMargin = 120;
+    topMargin = 160;
     bottomMargin = 100;
   }
   // Desktop: width >= 1024px
   else {
     leftMargin = 100;
-    rightMargin = 40;
-    topMargin = 140;
+    rightMargin = 0;
+    topMargin = 200;
     bottomMargin = 120;
   }
 
