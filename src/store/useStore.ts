@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { Tool, Line, Theme, Point, ViewState } from '../types';
-import { GameState } from '../types/game';
 import { persist } from 'zustand/middleware';
+import { Tool, Line, Theme, Point, ViewState } from '../types';
+import { GameState, GameLine, GridPoint, LineSegment } from '../types/game';
 
 interface DoodleState {
   // Main Canvas State
@@ -19,10 +19,10 @@ interface DoodleState {
 
   // Game Canvas State
   gameTool: Tool;
-  gameLines: Line[];
+  gameLines: GameLine[];
   gameLineThickness: number;
-  gameUndoStack: Line[][];
-  gameRedoStack: Line[][];
+  gameUndoStack: GameLine[][];
+  gameRedoStack: GameLine[][];
   gameMode: boolean;
   gameState: GameState | null;
 
@@ -51,7 +51,7 @@ interface DoodleState {
 
   // Game Canvas Actions
   setGameTool: (tool: Tool) => void;
-  addGameLine: (line: Line) => void;
+  addGameLine: (line: GameLine) => void;
   removeGameLine: (id: string) => void;
   setGameLineThickness: (thickness: number) => void;
   gameUndo: () => void;
@@ -60,7 +60,7 @@ interface DoodleState {
   setGameMode: (active: boolean) => void;
   setGameState: (state: GameState | null) => void;
   clearGameLines: () => void;
-  setGameLines: (lines: Line[]) => void;
+  setGameLines: (lines: GameLine[]) => void;
 
   // Shared Actions
   toggleTheme: () => void;

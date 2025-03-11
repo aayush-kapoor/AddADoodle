@@ -34,6 +34,11 @@ const calculateDynamicMargins = (width: number, height: number) => {
   return { leftMargin, rightMargin, topMargin, bottomMargin };
 };
 
+const isSegmentInList = (line: { points: GridPoint[] }, segmentIndex: number, idList: string[]): boolean => {
+  const segmentId = `${line.id}-${segmentIndex}`;
+  return idList.includes(segmentId);
+};
+
 export const GameCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { 
@@ -251,30 +256,30 @@ export const GameCanvas: React.FC = () => {
       gameLines.forEach(line => {
         if (line.points.length < 2) return;
         
-        const screenStart = gridToScreen(line.points[0]);
-        ctx.beginPath();
-        ctx.moveTo(screenStart.x, screenStart.y);
-        
-        for (let i = 1; i < line.points.length; i++) {
-          const screenPoint = gridToScreen(line.points[i]);
-          ctx.lineTo(screenPoint.x, screenPoint.y);
-        }
+        for (let i = 0; i < line.points.length - 1; i++) {
+          const start = gridToScreen(line.points[i]);
+          const end = gridToScreen(line.points[i + 1]);
+          
+          ctx.beginPath();
+          ctx.moveTo(start.x, start.y);
+          ctx.lineTo(end.x, end.y);
 
-        // Determine line color based on validation state
-        if (gameState?.correctLines.includes(line.id)) {
-          ctx.strokeStyle = theme === 'dark' ? 'rgba(0, 255, 128, 0.8)' : 'rgba(0, 200, 100, 0.8)';
-        } else if (gameState?.wrongLines.includes(line.id)) {
-          ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 64, 64, 0.8)' : 'rgba(255, 0, 0, 0.6)';
-        } else if (gameTool === 'eraser' && line.id === hoveredLine) {
-          ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 0, 0, 0.8)' : 'rgba(255, 0, 0, 0.6)';
-        } else {
-          ctx.strokeStyle = line.color;
+          // Determine segment color based on validation state
+          if (gameState?.correctLines.includes(`${line.id}-${i}`)) {
+            ctx.strokeStyle = theme === 'dark' ? 'rgba(0, 255, 128, 0.8)' : 'rgba(0, 200, 100, 0.8)';
+          } else if (gameState?.wrongLines.includes(`${line.id}-${i}`)) {
+            ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 64, 64, 0.8)' : 'rgba(255, 0, 0, 0.6)';
+          } else if (gameTool === 'eraser' && line.id === hoveredLine) {
+            ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 0, 0, 0.8)' : 'rgba(255, 0, 0, 0.6)';
+          } else {
+            ctx.strokeStyle = line.color;
+          }
+          
+          ctx.lineWidth = line.thickness;
+          ctx.lineJoin = 'round';
+          ctx.lineCap = 'round';
+          ctx.stroke();
         }
-        
-        ctx.lineWidth = line.thickness;
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
-        ctx.stroke();
       });
 
       // Draw current line preview
@@ -382,6 +387,7 @@ export const GameCanvas: React.FC = () => {
         correctLines: [],
         wrongLines: []
       });
+      console.log('Reset State:', useStore.getState().gameState);
     }
 
     if (gameTool === 'eraser') {
