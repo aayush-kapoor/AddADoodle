@@ -60,6 +60,7 @@ interface DoodleState {
   setGameMode: (active: boolean) => void;
   setGameState: (state: GameState | null) => void;
   clearGameLines: () => void;
+  setGameLines: (lines: Line[]) => void;
 
   // Shared Actions
   toggleTheme: () => void;
@@ -192,18 +193,31 @@ export const useStore = create<DoodleState>()(
 
       // Game Canvas Actions
       setGameTool: (tool) => set({ gameTool: tool }),
-      addGameLine: (line) => set((state) => ({
-        gameLines: [...state.gameLines, line],
-        gameUndoStack: [...state.gameUndoStack, state.gameLines],
-        gameRedoStack: []
-      })),
-      removeGameLine: (id) => set((state) => ({
-        gameLines: state.gameLines.filter((line) => line.id !== id)
-      })),
+      addGameLine: (line) => set((state) => {
+        const newLines = [...state.gameLines, line];
+        // Save to session storage
+        const today = new Date().toISOString().split('T')[0];
+        sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(newLines));
+        return {
+          gameLines: newLines,
+          gameUndoStack: [...state.gameUndoStack, state.gameLines],
+          gameRedoStack: []
+        };
+      }),
+      removeGameLine: (id) => set((state) => {
+        const newLines = state.gameLines.filter((line) => line.id !== id);
+        // Update session storage
+        const today = new Date().toISOString().split('T')[0];
+        sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(newLines));
+        return { gameLines: newLines };
+      }),
       setGameLineThickness: (thickness) => set({ gameLineThickness: thickness }),
       gameUndo: () => set((state) => {
         if (state.gameUndoStack.length === 0) return state;
         const previousLines = state.gameUndoStack[state.gameUndoStack.length - 1];
+        // Update session storage
+        const today = new Date().toISOString().split('T')[0];
+        sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(previousLines));
         return {
           gameLines: previousLines,
           gameUndoStack: state.gameUndoStack.slice(0, -1),
@@ -213,24 +227,39 @@ export const useStore = create<DoodleState>()(
       gameRedo: () => set((state) => {
         if (state.gameRedoStack.length === 0) return state;
         const nextLines = state.gameRedoStack[0];
+        // Update session storage
+        const today = new Date().toISOString().split('T')[0];
+        sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(nextLines));
         return {
           gameLines: nextLines,
           gameUndoStack: [...state.gameUndoStack, state.gameLines],
           gameRedoStack: state.gameRedoStack.slice(1)
         };
       }),
-      eraseGameLine: (id) => set((state) => ({
-        gameLines: state.gameLines.filter(line => line.id !== id),
-        gameUndoStack: [...state.gameUndoStack, state.gameLines],
-        gameRedoStack: []
-      })),
-      clearGameLines: () => set((state) => ({
-        gameLines: [],
-        gameUndoStack: [...state.gameUndoStack, state.gameLines],
-        gameRedoStack: []
-      })),
+      eraseGameLine: (id) => set((state) => {
+        const newLines = state.gameLines.filter(line => line.id !== id);
+        // Update session storage
+        const today = new Date().toISOString().split('T')[0];
+        sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(newLines));
+        return {
+          gameLines: newLines,
+          gameUndoStack: [...state.gameUndoStack, state.gameLines],
+          gameRedoStack: []
+        };
+      }),
+      clearGameLines: () => set((state) => {
+        // Clear from session storage
+        const today = new Date().toISOString().split('T')[0];
+        sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify([]));
+        return {
+          gameLines: [],
+          gameUndoStack: [...state.gameUndoStack, state.gameLines],
+          gameRedoStack: []
+        };
+      }),
       setGameMode: (active) => set({ gameMode: active }),
       setGameState: (state) => set({ gameState: state }),
+      setGameLines: (lines) => set({ gameLines: lines }),
 
       // Shared Actions
       toggleTheme: () => set((state) => {

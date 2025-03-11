@@ -46,7 +46,8 @@ export const GameCanvas: React.FC = () => {
     eraseGameLine,
     updateLastActivePosition,
     isModalOpen,
-    gameState
+    gameState,
+    setGameState
   } = useStore();
   
   const [drawingState, setDrawingState] = useState<DrawingState>({
@@ -374,6 +375,15 @@ export const GameCanvas: React.FC = () => {
     const y = e.clientY - rect.top;
     const gridPoint = screenToGrid(x, y);
 
+    // Reset validation colors when starting a new interaction
+    if (gameState) {
+      setGameState({
+        ...gameState,
+        correctLines: [],
+        wrongLines: []
+      });
+    }
+
     if (gameTool === 'eraser') {
       if (hoveredLine) {
         eraseGameLine(hoveredLine);
@@ -406,7 +416,6 @@ export const GameCanvas: React.FC = () => {
       return;
     }
 
-    // JUST TO SAVE
     if (drawingState.currentPoints.length > 1) {
       const newLine = {
         id: Date.now().toString(),

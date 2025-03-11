@@ -11,7 +11,7 @@ import { GameSubmitButton } from '../components/GameSubmitButton';
 import { supabase } from '../lib/supabase';
 
 export const DoodleOfTheDay: React.FC = () => {
-  const { theme, toggleTheme, gameState, setGameState, gameLines, gameUndoStack, clearGameLines } = useStore();
+  const { theme, toggleTheme, gameState, setGameState, gameLines, gameUndoStack, clearGameLines, setGameLines } = useStore();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,10 +33,19 @@ export const DoodleOfTheDay: React.FC = () => {
           return;
         }
 
+        // Get current attempt number from session storage
+        const attemptsKey = `doodle_attempts_${today}`;
+        const currentAttempts = parseInt(sessionStorage.getItem(attemptsKey) || '0');
+
+        // Load saved lines from session storage
+        const linesKey = `doodle_lines_${today}`;
+        const savedLines = JSON.parse(sessionStorage.getItem(linesKey) || '[]');
+        setGameLines(savedLines);
+
         setGameState({
           isActive: true,
-          currentAttempt: 1,
-          maxAttempts: 3,
+          currentAttempt: currentAttempts + 1,
+          maxAttempts: 5,
           minLinesRequired: shape.min_lines_required,
           drawnLines: [],
           correctLines: [],
@@ -54,7 +63,7 @@ export const DoodleOfTheDay: React.FC = () => {
     };
 
     loadDailyShape();
-  }, [setGameState]);
+  }, [setGameState, setGameLines]);
 
   const handleReset = () => {
     if (!gameState || gameLines.length === 0) return;

@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { useStore } from '../../store/useStore';
+// import React from 'react';
+// import { motion } from 'framer-motion';
+// import { useStore } from '../../store/useStore';
 // import { Line } from '../../types';
 
 // const countUniqueGridLines = (lines: Line[]): number => {
@@ -36,7 +36,9 @@ import { useStore } from '../../store/useStore';
   
 //   return uniqueLines.size;
 // };
-
+import React from 'react';
+import { motion } from 'framer-motion';
+import { useStore } from '../../store/useStore';
 import { GameLine, GridPoint } from '../types/game';
 
 const countUniqueGridLines = (lines: GameLine[]): number => {
@@ -57,7 +59,6 @@ const countUniqueGridLines = (lines: GameLine[]): number => {
       
       // Generate the key using the sorted points
       const lineKey = `${points[0].x},${points[0].y}-${points[1].x},${points[1].y}`;
-      // console.log(`Generated key for (${current.x},${current.y}) to (${next.x},${next.y}): ${lineKey}`);
       uniqueLines.add(lineKey);
     }
   }
@@ -71,6 +72,7 @@ export const GameHeader: React.FC = () => {
   if (!gameState) return null;
 
   const lineCount = countUniqueGridLines(gameLines);
+  const displayAttempt = Math.min(gameState.currentAttempt, gameState.maxAttempts);
 
   return (
     <div className="fixed top-0 left-0 w-full flex justify-center items-center pt-20 sm:pt-20 z-20 pointer-events-none">
@@ -87,7 +89,7 @@ export const GameHeader: React.FC = () => {
             : 'text-[rgba(0,0,0,0.3)]'
           }
         `}>
-          <span>Attempt {gameState.currentAttempt} of {gameState.maxAttempts}</span>
+          <span>Attempt {displayAttempt} of {gameState.maxAttempts}</span>
           <span className={`mx-2 ${
             theme === 'dark' 
               ? 'text-[rgba(255,255,255,0.2)]' 
