@@ -35,7 +35,8 @@
 //   }
   
 //   return uniqueLines.size;
-// };import React from 'react';
+// };
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '../../store/useStore';
 import { GameLine } from '../../types/game';
@@ -76,44 +77,52 @@ export const GameHeader: React.FC = () => {
   const totalLinesLimit = gameState.totalLinesLimit || 30;
   const totalLinesUsed = gameState.totalLinesUsed + lineCount;
 
+  // Determine screen size for conditional rendering
+  const isMobile = window.innerWidth < 640; // sm breakpoint
+  const isTablet = window.innerWidth >= 640 && window.innerWidth < 1024; // md breakpoint
+
   return (
-    <div className="fixed top-0 left-0 w-full flex justify-center items-center pt-20 sm:pt-20 z-20 pointer-events-none">
+    <div className="fixed top-0 left-0 w-full flex justify-center items-center pt-20 sm:pt-20 md:pt-20 z-20 pointer-events-none">
       <motion.div
-        className="pointer-events-auto"
+        className="pointer-events-auto w-full max-w-screen-sm px-4 sm:px-6"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
         <div className={`
-          text-base sm:text-lg font-medium
+          flex flex-col gap-3
+          ${isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-base'}
+          font-medium text-center
           ${theme === 'dark' 
             ? 'text-[rgba(255,255,255,0.3)]' 
             : 'text-[rgba(0,0,0,0.3)]'
           }
         `}>
-          <span>Attempt {displayAttempt} of {gameState.maxAttempts}</span>
-          <span className={`mx-2 ${
-            theme === 'dark' 
-              ? 'text-[rgba(255,255,255,0.2)]' 
-              : 'text-[rgba(0,0,0,0.2)]'
-          }`}>|</span>
-          <span className={isLineCountCorrect ? 'text-emerald-500' : 'text-red-500'}>
-            Lines: {lineCount}/{gameState.minLinesRequired}
-          </span>
-          <span className={`mx-2 ${
-            theme === 'dark' 
-              ? 'text-[rgba(255,255,255,0.2)]' 
-              : 'text-[rgba(0,0,0,0.2)]'
-          }`}>|</span>
-          <span>Max lines you can draw: {totalLinesLimit}</span>
-          <span className={`mx-2 ${
-            theme === 'dark' 
-              ? 'text-[rgba(255,255,255,0.2)]' 
-              : 'text-[rgba(0,0,0,0.2)]'
-          }`}>|</span>
-          <span className={totalLinesUsed >= totalLinesLimit ? 'text-red-500' : ''}>
-            Total lines drawn: {totalLinesUsed}
-          </span>
+          {/* First Row */}
+          <div className="flex items-center justify-center gap-2">
+            <span>Attempt {displayAttempt} of {gameState.maxAttempts}</span>
+            <span className={`${
+              theme === 'dark' 
+                ? 'text-[rgba(255,255,255,0.2)]' 
+                : 'text-[rgba(0,0,0,0.2)]'
+            }`}>|</span>
+            <span className={isLineCountCorrect ? 'text-emerald-500' : 'text-red-500'}>
+              Lines: {lineCount}/{gameState.minLinesRequired}
+            </span>
+          </div>
+
+          {/* Second Row */}
+          <div className="flex items-center justify-center gap-2">
+            <span>Max lines you can draw: {totalLinesLimit}</span>
+            <span className={`${
+              theme === 'dark' 
+                ? 'text-[rgba(255,255,255,0.2)]' 
+                : 'text-[rgba(0,0,0,0.2)]'
+            }`}>|</span>
+            <span className={totalLinesUsed >= totalLinesLimit ? 'text-red-500' : ''}>
+              Total lines drawn: {totalLinesUsed}
+            </span>
+          </div>
         </div>
       </motion.div>
     </div>
