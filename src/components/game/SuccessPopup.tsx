@@ -1,21 +1,19 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Frown } from 'lucide-react';
+import { X, Trophy } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 
-interface FailurePopupProps {
+interface SuccessPopupProps {
   isOpen: boolean;
   onClose: () => void;
   stats: {
     attempts: number;
-    correctLines: number;
-    totalLines: number;
-    linesUsed?: number;
-    totalLinesLimit?: number;
+    linesUsed: number;
+    totalLinesLimit: number;
   };
 }
 
-export const FailurePopup: React.FC<FailurePopupProps> = ({ isOpen, onClose, stats }) => {
+export const SuccessPopup: React.FC<SuccessPopupProps> = ({ isOpen, onClose, stats }) => {
   const { theme } = useStore();
 
   return (
@@ -48,42 +46,38 @@ export const FailurePopup: React.FC<FailurePopupProps> = ({ isOpen, onClose, sta
 
               <div className="flex flex-col items-center gap-3 text-center">
                 <div className="flex flex-col items-center gap-2">
-                  <Frown size={28} className="text-red-500" />
-                  <h2 className="text-lg font-semibold tracking-tight">Better Luck Tomorrow!</h2>
+                  <Trophy size={28} className="text-yellow-500" />
+                  <h2 className="text-lg font-semibold tracking-tight">Congratulations!</h2>
                   <p className="text-sm opacity-60">
-                    You've used all your attempts for today.
+                    You've successfully completed today's challenge!
                   </p>
                 </div>
 
                 <div className="w-full p-3 rounded-xl bg-white/5">
-                  <h3 className="text-sm font-medium mb-2">Today's Stats</h3>
+                  <h3 className="text-sm font-medium mb-2">Your Stats</h3>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="flex flex-col gap-1">
                       <span className="text-lg font-bold">{stats.attempts}</span>
                       <span className="text-[10px] opacity-60">Attempts</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-lg font-bold">{stats.correctLines}</span>
-                      <span className="text-[10px] opacity-60">Correct</span>
+                      <span className="text-lg font-bold">{stats.linesUsed}</span>
+                      <span className="text-[10px] opacity-60">Lines Used</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-lg font-bold">{stats.totalLines}</span>
-                      <span className="text-[10px] opacity-60">Total</span>
+                      <span className="text-lg font-bold">{stats.totalLinesLimit}</span>
+                      <span className="text-[10px] opacity-60">Max Lines</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="w-full p-3 rounded-xl bg-white/5">
-                  <h3 className="text-sm font-medium mb-2">Lines Used</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-lg font-bold">{stats.linesUsed || 0}</span>
-                      <span className="text-[10px] opacity-60">Used</span>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-lg font-bold">{stats.totalLinesLimit || 30}</span>
-                      <span className="text-[10px] opacity-60">Limit</span>
-                    </div>
+                  <h3 className="text-sm font-medium mb-2">Efficiency</h3>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-lg font-bold">
+                      {Math.round((stats.linesUsed / stats.totalLinesLimit) * 100)}%
+                    </span>
+                    <span className="text-[10px] opacity-60">Lines Used vs Max</span>
                   </div>
                 </div>
 
