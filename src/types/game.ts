@@ -4,7 +4,9 @@ export interface Shape {
   difficulty_level: number;
   min_lines_required: number;
   grid_data: ShapeGridData;
+  line_keys: string[];
   active_date: string;
+  total_lines_limit: number;
 }
 
 export interface ShapeGridData {
@@ -28,6 +30,13 @@ export interface GameLine {
   color: string;
 }
 
+export interface LineSegment {
+  id: string;
+  start: GridPoint;
+  end: GridPoint;
+  parentLineId: string;
+}
+
 export interface Attempt {
   id: string;
   user_id: string;
@@ -43,10 +52,12 @@ export interface GameState {
   currentAttempt: number;
   maxAttempts: number;
   minLinesRequired?: number;
+  totalLinesLimit?: number;
+  totalLinesUsed: number;
   drawnLines: GameLine[];
-  correctLines: string[];
+  correctLines: string[]; // Now stores segment IDs in format "lineId-segmentIndex"
   connectedButWrongLines: string[];
-  wrongLines: string[];
+  wrongLines: string[]; // Now stores segment IDs in format "lineId-segmentIndex"
   timeLeft?: number;
   gridData?: ShapeGridData;
 }

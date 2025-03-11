@@ -16,8 +16,10 @@ export interface Database {
           difficulty_level: number
           min_lines_required: number
           grid_data: Json
+          line_keys: string[]
           active_date: string
           created_at: string | null
+          total_lines_limit: number
         }
         Insert: {
           id?: string
@@ -25,8 +27,10 @@ export interface Database {
           difficulty_level?: number
           min_lines_required: number
           grid_data: Json
+          line_keys?: string[]
           active_date: string
           created_at?: string | null
+          total_lines_limit?: number
         }
         Update: {
           id?: string
@@ -34,8 +38,10 @@ export interface Database {
           difficulty_level?: number
           min_lines_required?: number
           grid_data?: Json
+          line_keys?: string[]
           active_date?: string
           created_at?: string | null
+          total_lines_limit?: number
         }
       }
       attempts: {

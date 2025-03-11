@@ -42,11 +42,17 @@ export const DoodleOfTheDay: React.FC = () => {
         const savedLines = JSON.parse(sessionStorage.getItem(linesKey) || '[]');
         setGameLines(savedLines);
 
+        // Load total lines used from session storage
+        const totalLinesKey = `doodle_total_lines_${today}`;
+        const totalLinesUsed = parseInt(sessionStorage.getItem(totalLinesKey) || '0');
+
         setGameState({
           isActive: true,
           currentAttempt: currentAttempts + 1,
           maxAttempts: 5,
           minLinesRequired: shape.min_lines_required,
+          totalLinesLimit: shape.total_lines_limit,
+          totalLinesUsed: totalLinesUsed,
           drawnLines: [],
           correctLines: [],
           connectedButWrongLines: [],
