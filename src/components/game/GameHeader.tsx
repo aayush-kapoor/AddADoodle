@@ -35,11 +35,10 @@
 //   }
   
 //   return uniqueLines.size;
-// };
-import React from 'react';
+// };import React from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '../../store/useStore';
-import { GameLine, GridPoint } from '../types/game';
+import { GameLine } from '../../types/game';
 
 const countUniqueGridLines = (lines: GameLine[]): number => {
   const uniqueLines = new Set<string>();
@@ -73,6 +72,9 @@ export const GameHeader: React.FC = () => {
 
   const lineCount = countUniqueGridLines(gameLines);
   const displayAttempt = Math.min(gameState.currentAttempt, gameState.maxAttempts);
+  const isLineCountCorrect = lineCount === gameState.minLinesRequired;
+  const totalLinesLimit = gameState.totalLinesLimit || 30;
+  const totalLinesUsed = gameState.totalLinesUsed + lineCount;
 
   return (
     <div className="fixed top-0 left-0 w-full flex justify-center items-center pt-20 sm:pt-20 z-20 pointer-events-none">
@@ -95,7 +97,23 @@ export const GameHeader: React.FC = () => {
               ? 'text-[rgba(255,255,255,0.2)]' 
               : 'text-[rgba(0,0,0,0.2)]'
           }`}>|</span>
-          <span>Lines: {lineCount}/{gameState.minLinesRequired}</span>
+          <span className={isLineCountCorrect ? 'text-emerald-500' : 'text-red-500'}>
+            Lines: {lineCount}/{gameState.minLinesRequired}
+          </span>
+          <span className={`mx-2 ${
+            theme === 'dark' 
+              ? 'text-[rgba(255,255,255,0.2)]' 
+              : 'text-[rgba(0,0,0,0.2)]'
+          }`}>|</span>
+          <span>Max lines you can draw: {totalLinesLimit}</span>
+          <span className={`mx-2 ${
+            theme === 'dark' 
+              ? 'text-[rgba(255,255,255,0.2)]' 
+              : 'text-[rgba(0,0,0,0.2)]'
+          }`}>|</span>
+          <span className={totalLinesUsed >= totalLinesLimit ? 'text-red-500' : ''}>
+            Total lines drawn: {totalLinesUsed}
+          </span>
         </div>
       </motion.div>
     </div>
