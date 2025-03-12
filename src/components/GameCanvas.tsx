@@ -11,6 +11,28 @@ const DOT_RADIUS = 2;
 const HIGHLIGHT_RADIUS = 3;
 const LINE_HOVER_THRESHOLD = 2;
 
+// Helper function to generate line key
+const generateLineKey = (start: GridPoint, end: GridPoint): string => {
+  // Sort points to ensure consistent key regardless of direction
+  if (start.x < end.x || (start.x === end.x && start.y < end.y)) {
+    return `${start.x},${start.y}-${end.x},${end.y}`;
+  }
+  return `${end.x},${end.y}-${start.x},${start.y}`;
+};
+
+// Helper function to get all existing line keys
+const getExistingLineKeys = (lines: GameLine[]): Set<string> => {
+  const keys = new Set<string>();
+  lines.forEach(line => {
+    if (line.points.length < 2) return;
+    for (let i = 0; i < line.points.length - 1; i++) {
+      const key = generateLineKey(line.points[i], line.points[i + 1]);
+      keys.add(key);
+    }
+  });
+  return keys;
+};
+
 const calculateDynamicMargins = (width: number, height: number) => {
   let leftMargin: number, rightMargin: number, topMargin: number, bottomMargin: number;
 
@@ -362,9 +384,30 @@ export const GameCanvas: React.FC = () => {
         }
       }
 
+      // Check if the new segment would overlap with an existing one
+      const existingKeys = getExistingLineKeys(gameLines);
+      const newSegmentKey = generateLineKey(lastPoint, gridPoint);
+      
+      // Don't add the point if the segment already exists
+      if (existingKeys.has(newSegmentKey)) {
+        return;
+      }
+
       const intermediatePoints = findIntermediateGridPoints(lastPoint, gridPoint);
       
-      if (intermediatePoints.length > 0) {
+      // Check each intermediate segment
+      let canAddPoints = true;
+      for (let i = 0; i < intermediatePoints.length; i++) {
+        const start = i === 0 ? lastPoint : intermediatePoints[i - 1];
+        const end = intermediatePoints[i];
+        const segmentKey = generateLineKey(start, end);
+        if (existingKeys.has(segmentKey)) {
+          canAddPoints = false;
+          break;
+        }
+      }
+      
+      if (canAddPoints && intermediatePoints.length > 0) {
         setDrawingState(prev => ({
           ...prev,
           currentPoints: [...prev.currentPoints, ...intermediatePoints]
@@ -381,12 +424,14 @@ export const GameCanvas: React.FC = () => {
     const gridPoint = screenToGrid(x, y);
 
     // Reset validation colors when starting a new interaction
-    if (gameState) {
+    if (gameState?.wrongLines.length) {
+      useStore.getState().removeGameLineSegments(gameState.wrongLines);
       setGameState({
         ...gameState,
-        correctLines: [],
-        wrongLines: []
+        wrongLines: [],
+        disabledSegments: new Set([...gameState.disabledSegments, ...gameState.wrongLines])
       });
+    
       console.log('Reset State:', useStore.getState().gameState);
     }
 

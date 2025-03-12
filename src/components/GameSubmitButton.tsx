@@ -156,7 +156,6 @@ export const GameSubmitButton: React.FC = () => {
 
     const today = new Date().toISOString().split('T')[0];
     const attemptsKey = `doodle_attempts_${today}`;
-    const totalLinesKey = `doodle_total_lines_${today}`;
     const currentAttempts = parseInt(sessionStorage.getItem(attemptsKey) || '0');
 
     // Check if total lines limit is exceeded
@@ -191,7 +190,7 @@ export const GameSubmitButton: React.FC = () => {
     sessionStorage.setItem(attemptsKey, (currentAttempts + 1).toString());
 
     // Update total lines used in session storage
-    sessionStorage.setItem(totalLinesKey, totalLinesUsed.toString());
+    sessionStorage.setItem(`doodle_total_lines_${today}`, totalLinesUsed.toString());
 
     // Validate the drawn lines against the solution
     const { correctLines, wrongLines, uniqueLineCount } = validateLines(gameLines, solution);
@@ -219,7 +218,9 @@ export const GameSubmitButton: React.FC = () => {
       correctLines,
       wrongLines,
       drawnLines: [...gameState.drawnLines, ...gameLines],
-      totalLinesUsed
+      totalLinesUsed,
+      disabledSegments: [...gameState.disabledSegments, ...wrongLines],
+      correctSegments: [...gameState.correctSegments, ...correctLines]
     });
 
     // Check if this was the last attempt

@@ -61,6 +61,8 @@ interface DoodleState {
   setGameState: (state: GameState | null) => void;
   clearGameLines: () => void;
   setGameLines: (lines: GameLine[]) => void;
+  removeGameLineSegments: (segmentIds: string[]) => void;
+  getGameLineSegments: () => LineSegment[];
 
   // Shared Actions
   toggleTheme: () => void;
@@ -68,7 +70,7 @@ interface DoodleState {
 
 export const useStore = create<DoodleState>()(
   persist(
-    (set) => ({
+    (set, get) => ({ // Added 'get' for getGameLineSegments
       // Main Canvas Initial State
       tool: 'line',
       lines: [],
@@ -195,7 +197,6 @@ export const useStore = create<DoodleState>()(
       setGameTool: (tool) => set({ gameTool: tool }),
       addGameLine: (line) => set((state) => {
         const newLines = [...state.gameLines, line];
-        // Save to session storage
         const today = new Date().toISOString().split('T')[0];
         sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(newLines));
         return {
@@ -206,7 +207,6 @@ export const useStore = create<DoodleState>()(
       }),
       removeGameLine: (id) => set((state) => {
         const newLines = state.gameLines.filter((line) => line.id !== id);
-        // Update session storage
         const today = new Date().toISOString().split('T')[0];
         sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(newLines));
         return { gameLines: newLines };
@@ -215,7 +215,6 @@ export const useStore = create<DoodleState>()(
       gameUndo: () => set((state) => {
         if (state.gameUndoStack.length === 0) return state;
         const previousLines = state.gameUndoStack[state.gameUndoStack.length - 1];
-        // Update session storage
         const today = new Date().toISOString().split('T')[0];
         sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(previousLines));
         return {
@@ -227,7 +226,6 @@ export const useStore = create<DoodleState>()(
       gameRedo: () => set((state) => {
         if (state.gameRedoStack.length === 0) return state;
         const nextLines = state.gameRedoStack[0];
-        // Update session storage
         const today = new Date().toISOString().split('T')[0];
         sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(nextLines));
         return {
@@ -238,7 +236,6 @@ export const useStore = create<DoodleState>()(
       }),
       eraseGameLine: (id) => set((state) => {
         const newLines = state.gameLines.filter(line => line.id !== id);
-        // Update session storage
         const today = new Date().toISOString().split('T')[0];
         sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(newLines));
         return {
@@ -248,7 +245,6 @@ export const useStore = create<DoodleState>()(
         };
       }),
       clearGameLines: () => set((state) => {
-        // Clear from session storage
         const today = new Date().toISOString().split('T')[0];
         sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify([]));
         return {
@@ -260,6 +256,76 @@ export const useStore = create<DoodleState>()(
       setGameMode: (active) => set({ gameMode: active }),
       setGameState: (state) => set({ gameState: state }),
       setGameLines: (lines) => set({ gameLines: lines }),
+      removeGameLineSegments: (segmentIds: string[]) => set((state) => {
+        const newLines: GameLine[] = [];
+        const segmentSet = new Set(segmentIds);
+        
+        state.gameLines.forEach(line => {
+          if (line.points.length < 2) return;
+          
+          let newPoints: GridPoint[] = [];
+          let currentSegment = 0;
+          
+          for (let i = 0; i < line.points.length - 1; i++) {
+            const segmentId = `${line.id}-${currentSegment}`;
+            
+            if (!segmentSet.has(segmentId)) {
+              if (newPoints.length === 0) {
+                newPoints.push(line.points[i]);
+              }
+              newPoints.push(line.points[i + 1]);
+            } else if (newPoints.length > 0) {
+              if (newPoints.length > 1) {
+                newLines.push({
+                  id: `${line.id}-${newLines.length}`,
+                  points: newPoints,
+                  thickness: line.thickness,
+                  color: line.color
+                });
+              }
+              newPoints = [];
+            }
+            currentSegment++;
+          }
+          
+          if (newPoints.length > 1) {
+            newLines.push({
+              id: `${line.id}-${newLines.length}`,
+              points: newPoints,
+              thickness: line.thickness,
+              color: line.color
+            });
+          }
+        });
+
+        const today = new Date().toISOString().split('T')[0];
+        sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(newLines));
+
+        return {
+          gameLines: newLines,
+          gameUndoStack: [...state.gameUndoStack, state.gameLines],
+          gameRedoStack: []
+        };
+      }),
+      getGameLineSegments: () => {
+        const state = get();
+        const segments: LineSegment[] = [];
+        
+        state.gameLines.forEach(line => {
+          if (line.points.length < 2) return;
+          
+          for (let i = 0; i < line.points.length - 1; i++) {
+            segments.push({
+              id: `${line.id}-${i}`,
+              start: line.points[i],
+              end: line.points[i + 1],
+              parentLineId: line.id
+            });
+          }
+        });
+        
+        return segments;
+      },
 
       // Shared Actions
       toggleTheme: () => set((state) => {

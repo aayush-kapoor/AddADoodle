@@ -56,8 +56,9 @@ export interface GameState {
   totalLinesUsed: number;
   drawnLines: GameLine[];
   correctLines: string[]; // Now stores segment IDs in format "lineId-segmentIndex"
-  connectedButWrongLines: string[];
   wrongLines: string[]; // Now stores segment IDs in format "lineId-segmentIndex"
+  disabledSegments: string[]; // Store line segments that can't be drawn
+  correctSegments: string[]; // Store correct line segments
   timeLeft?: number;
   gridData?: ShapeGridData;
 }

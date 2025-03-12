@@ -58,8 +58,9 @@ export const DoodleOfTheDay: React.FC = () => {
           totalLinesUsed: totalLinesUsed,
           drawnLines: [],
           correctLines: [],
-          connectedButWrongLines: [],
           wrongLines: [],
+          disabledSegments: [],
+          correctSegments: [],
           gridData: shape.grid_data
         });
 
