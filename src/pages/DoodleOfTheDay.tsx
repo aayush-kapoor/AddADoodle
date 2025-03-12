@@ -41,13 +41,21 @@ export const DoodleOfTheDay: React.FC = () => {
         const currentAttempts = parseInt(sessionStorage.getItem(attemptsKey) || '0');
 
         // Load saved lines from session storage
-        const linesKey = `doodle_lines_${today}`;
+        const linesKey = `doodle_current_lines_${today}`;
         const savedLines = JSON.parse(sessionStorage.getItem(linesKey) || '[]');
         setGameLines(savedLines);
 
         // Load total lines used from session storage
         const totalLinesKey = `doodle_total_lines_${today}`;
         const totalLinesUsed = parseInt(sessionStorage.getItem(totalLinesKey) || '0');
+
+        // Load disabled segments from session storage
+        const disabledSegmentsKey = `doodle_disabled_segments_${today}`;
+        const savedDisabledSegments = new Set(JSON.parse(sessionStorage.getItem(disabledSegmentsKey) || '[]'));
+
+        // Load correct segments from session storage
+        const correctSegmentsKey = `doodle_correct_segments_${today}`;
+        const savedCorrectSegments = JSON.parse(sessionStorage.getItem(correctSegmentsKey) || '[]');
 
         setGameState({
           isActive: true,
@@ -59,8 +67,8 @@ export const DoodleOfTheDay: React.FC = () => {
           drawnLines: [],
           correctLines: [],
           wrongLines: [],
-          disabledSegments: [],
-          correctSegments: [],
+          disabledSegments: savedDisabledSegments,
+          correctSegments: savedCorrectSegments,
           gridData: shape.grid_data
         });
 
@@ -82,8 +90,36 @@ export const DoodleOfTheDay: React.FC = () => {
     loadDailyShape();
   }, [setGameState, setGameLines]);
 
+  // Save current lines to session storage whenever they change
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const linesKey = `doodle_current_lines_${today}`;
+    sessionStorage.setItem(linesKey, JSON.stringify(gameLines));
+  }, [gameLines]);
+
+  // Save game state changes to session storage
+  useEffect(() => {
+    if (!gameState) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Save disabled segments
+    const disabledSegmentsKey = `doodle_disabled_segments_${today}`;
+    sessionStorage.setItem(disabledSegmentsKey, JSON.stringify(Array.from(gameState.disabledSegments)));
+
+    // Save correct segments
+    const correctSegmentsKey = `doodle_correct_segments_${today}`;
+    sessionStorage.setItem(correctSegmentsKey, JSON.stringify(gameState.correctSegments));
+  }, [gameState]);
+
   const handleReset = () => {
     if (!gameState || gameLines.length === 0) return;
+    
+    // Clear current lines from session storage
+    const today = new Date().toISOString().split('T')[0];
+    const linesKey = `doodle_current_lines_${today}`;
+    sessionStorage.setItem(linesKey, JSON.stringify([]));
+    
     clearGameLines();
   };
 

@@ -74,7 +74,9 @@ export const GameCanvas: React.FC = () => {
     updateLastActivePosition,
     isModalOpen,
     gameState,
-    setGameState
+    setGameState,
+    removeGameLineSegments,
+    setGameLines
   } = useStore();
   
   const [drawingState, setDrawingState] = useState<DrawingState>({
@@ -274,6 +276,34 @@ export const GameCanvas: React.FC = () => {
         }
       }
 
+      // Draw disabled segments (wrong line traces) first
+      if (gameState?.disabledSegments.size > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 0, 0, 0.5)';
+        ctx.lineWidth = gameLineThickness;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        gameState.drawnLines.forEach(line => {
+          if (line.points.length < 2) return;
+          
+          for (let i = 0; i < line.points.length - 1; i++) {
+            const segmentId = `${line.id}-${i}`;
+            if (gameState.disabledSegments.has(segmentId)) {
+              const start = gridToScreen(line.points[i]);
+              const end = gridToScreen(line.points[i + 1]);
+              
+              ctx.beginPath();
+              ctx.moveTo(start.x, start.y);
+              ctx.lineTo(end.x, end.y);
+              ctx.stroke();
+            }
+          }
+        });
+        ctx.restore();
+      }
+
       // Draw existing lines with validation feedback
       gameLines.forEach(line => {
         if (line.points.length < 2) return;
@@ -287,9 +317,10 @@ export const GameCanvas: React.FC = () => {
           ctx.lineTo(end.x, end.y);
 
           // Determine segment color based on validation state
-          if (gameState?.correctLines.includes(`${line.id}-${i}`)) {
+          const segmentId = `${line.id}-${i}`;
+          if (gameState?.correctLines.includes(segmentId)) {
             ctx.strokeStyle = theme === 'dark' ? 'rgba(0, 255, 128, 0.8)' : 'rgba(0, 200, 100, 0.8)';
-          } else if (gameState?.wrongLines.includes(`${line.id}-${i}`)) {
+          } else if (gameState?.wrongLines.includes(segmentId)) {
             ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 64, 64, 0.8)' : 'rgba(255, 0, 0, 0.6)';
           } else if (gameTool === 'eraser' && line.id === hoveredLine) {
             ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 0, 0, 0.8)' : 'rgba(255, 0, 0, 0.6)';
@@ -384,11 +415,11 @@ export const GameCanvas: React.FC = () => {
         }
       }
 
-      // Check if the new segment would overlap with an existing one
+      // Check if the new segment would overlap with an existing one or is in disabled segments
       const existingKeys = getExistingLineKeys(gameLines);
       const newSegmentKey = generateLineKey(lastPoint, gridPoint);
       
-      // Don't add the point if the segment already exists
+      // Don't add the point if the segment already exists or is disabled
       if (existingKeys.has(newSegmentKey)) {
         return;
       }
@@ -423,16 +454,16 @@ export const GameCanvas: React.FC = () => {
     const y = e.clientY - rect.top;
     const gridPoint = screenToGrid(x, y);
 
-    // Reset validation colors when starting a new interaction
+    // Reset validation colors and remove wrong segments
     if (gameState?.wrongLines.length) {
-      useStore.getState().removeGameLineSegments(gameState.wrongLines);
+      // Remove wrong segments while keeping correct ones
+      removeGameLineSegments(gameState.wrongLines);
+      
       setGameState({
         ...gameState,
         wrongLines: [],
         disabledSegments: new Set([...gameState.disabledSegments, ...gameState.wrongLines])
       });
-    
-      console.log('Reset State:', useStore.getState().gameState);
     }
 
     if (gameTool === 'eraser') {
@@ -443,6 +474,22 @@ export const GameCanvas: React.FC = () => {
     }
     
     if (gameTool !== 'line') return;
+
+    // Check if starting point is on a disabled segment
+    if (gameState?.disabledSegments.size) {
+      const isDisabled = Array.from(gameState.disabledSegments).some(segmentId => {
+        const [lineId, segmentIndex] = segmentId.split('-');
+        const line = gameState.drawnLines.find(l => l.id === lineId);
+        if (!line) return false;
+
+        const start = line.points[parseInt(segmentIndex)];
+        const end = line.points[parseInt(segmentIndex) + 1];
+        
+        return generateLineKey(start, end).includes(generateLineKey(gridPoint, gridPoint));
+      });
+
+      if (isDisabled) return;
+    }
 
     setDrawingState({
       isDrawing: true,
@@ -467,7 +514,24 @@ export const GameCanvas: React.FC = () => {
       return;
     }
 
-    if (drawingState.currentPoints.length > 1) {
+    // Check if any part of the line intersects with disabled segments
+    const hasDisabledIntersection = drawingState.currentPoints.some((point, i) => {
+      if (i === 0) return false;
+      const prevPoint = drawingState.currentPoints[i - 1];
+      const segmentKey = generateLineKey(prevPoint, point);
+      
+      return Array.from(gameState?.disabledSegments || []).some(disabledId => {
+        const [lineId, segmentIndex] = disabledId.split('-');
+        const line = gameState?.drawnLines.find(l => l.id === lineId);
+        if (!line) return false;
+        
+        const start = line.points[parseInt(segmentIndex)];
+        const end = line.points[parseInt(segmentIndex) + 1];
+        return generateLineKey(start, end) === segmentKey;
+      });
+    });
+
+    if (!hasDisabledIntersection && drawingState.currentPoints.length > 1) {
       const newLine = {
         id: Date.now().toString(),
         points: drawingState.currentPoints,

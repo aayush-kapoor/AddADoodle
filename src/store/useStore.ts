@@ -70,7 +70,7 @@ interface DoodleState {
 
 export const useStore = create<DoodleState>()(
   persist(
-    (set, get) => ({ // Added 'get' for getGameLineSegments
+    (set, get) => ({
       // Main Canvas Initial State
       tool: 'line',
       lines: [],
@@ -263,35 +263,35 @@ export const useStore = create<DoodleState>()(
         state.gameLines.forEach(line => {
           if (line.points.length < 2) return;
           
-          let newPoints: GridPoint[] = [];
-          let currentSegment = 0;
+          let currentPoints: GridPoint[] = [];
+          let segmentIndex = 0;
           
           for (let i = 0; i < line.points.length - 1; i++) {
-            const segmentId = `${line.id}-${currentSegment}`;
+            const segmentId = `${line.id}-${segmentIndex}`;
             
             if (!segmentSet.has(segmentId)) {
-              if (newPoints.length === 0) {
-                newPoints.push(line.points[i]);
+              if (currentPoints.length === 0) {
+                currentPoints.push(line.points[i]);
               }
-              newPoints.push(line.points[i + 1]);
-            } else if (newPoints.length > 0) {
-              if (newPoints.length > 1) {
+              currentPoints.push(line.points[i + 1]);
+            } else if (currentPoints.length > 0) {
+              if (currentPoints.length > 1) {
                 newLines.push({
                   id: `${line.id}-${newLines.length}`,
-                  points: newPoints,
+                  points: currentPoints,
                   thickness: line.thickness,
                   color: line.color
                 });
               }
-              newPoints = [];
+              currentPoints = [];
             }
-            currentSegment++;
+            segmentIndex++;
           }
           
-          if (newPoints.length > 1) {
+          if (currentPoints.length > 1) {
             newLines.push({
               id: `${line.id}-${newLines.length}`,
-              points: newPoints,
+              points: currentPoints,
               thickness: line.thickness,
               color: line.color
             });

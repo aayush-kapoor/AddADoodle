@@ -140,7 +140,7 @@ export const GameSubmitButton: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!gameState || !solution) return;
-
+  
     // If game is already completed for today, just show the appropriate popup
     if (gameCompleted) {
       const today = new Date().toISOString().split('T')[0];
@@ -153,6 +153,15 @@ export const GameSubmitButton: React.FC = () => {
       }
       return;
     }
+
+    const currentLineKeys = gameLines.flatMap(line =>
+      line.points.length < 2
+        ? []
+        : line.points.slice(0, -1).map((start, i) => generateLineKey(start, line.points[i + 1]))
+    );
+    console.log('Current Line Keys on Submit:', currentLineKeys);
+
+    
 
     const today = new Date().toISOString().split('T')[0];
     const attemptsKey = `doodle_attempts_${today}`;
@@ -219,7 +228,7 @@ export const GameSubmitButton: React.FC = () => {
       wrongLines,
       drawnLines: [...gameState.drawnLines, ...gameLines],
       totalLinesUsed,
-      disabledSegments: [...gameState.disabledSegments, ...wrongLines],
+      disabledSegments: new Set([...gameState.disabledSegments, ...wrongLines]),
       correctSegments: [...gameState.correctSegments, ...correctLines]
     });
 
@@ -240,8 +249,8 @@ export const GameSubmitButton: React.FC = () => {
     }
   };
 
-  const isDisabled = !gameState || !solution || lineCount === 0 || 
-    (solution.min_lines_required && lineCount < solution.min_lines_required);
+  // Only disable submit button when there are no lines drawn
+  const isDisabled = !gameState || !solution || lineCount === 0;
 
   return (
     <>
