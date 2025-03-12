@@ -9,7 +9,6 @@ interface SuccessPopupProps {
   stats: {
     attempts: number;
     linesUsed: number;
-    totalLinesLimit: number;
   };
 }
 
@@ -44,7 +43,7 @@ export const SuccessPopup: React.FC<SuccessPopupProps> = ({ isOpen, onClose, sta
                 <X size={20} />
               </button>
 
-              <div className="flex flex-col items-center gap-3 text-center">
+              <div className="flex flex-col items-center gap-6 text-center">
                 <div className="flex flex-col items-center gap-2">
                   <Trophy size={28} className="text-yellow-500" />
                   <h2 className="text-lg font-semibold tracking-tight">Congratulations!</h2>
@@ -55,33 +54,23 @@ export const SuccessPopup: React.FC<SuccessPopupProps> = ({ isOpen, onClose, sta
 
                 <div className="w-full p-3 rounded-xl bg-white/5">
                   <h3 className="text-sm font-medium mb-2">Your Stats</h3>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <div className="flex flex-col gap-1">
                       <span className="text-lg font-bold">{stats.attempts}</span>
                       <span className="text-[10px] opacity-60">Attempts</span>
                     </div>
                     <div className="flex flex-col gap-1">
                       <span className="text-lg font-bold">{stats.linesUsed}</span>
-                      <span className="text-[10px] opacity-60">Lines Used</span>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-lg font-bold">{stats.totalLinesLimit}</span>
-                      <span className="text-[10px] opacity-60">Max Lines</span>
+                      <span className="text-[10px] opacity-60">Total Lines Used</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="w-full p-3 rounded-xl bg-white/5">
-                  <h3 className="text-sm font-medium mb-2">Efficiency</h3>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-lg font-bold">
-                      {Math.round((stats.linesUsed / stats.totalLinesLimit) * 100)}%
-                    </span>
-                    <span className="text-[10px] opacity-60">Lines Used vs Max</span>
-                  </div>
+                <div className="w-full aspect-video rounded-xl bg-white/5 flex items-center justify-center">
+                  <p className="text-xs opacity-60">Today's solution preview coming soon!</p>
                 </div>
 
-                <p className="text-xs opacity-60 mt-2">
+                <p className="text-xs opacity-60">
                   Come back tomorrow for a new challenge!
                 </p>
               </div>

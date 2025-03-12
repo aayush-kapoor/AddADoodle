@@ -8,6 +8,8 @@ import { GameHeader } from '../components/game/GameHeader';
 import { GameToolbar } from '../components/GameToolbar';
 import { GameUndoRedo } from '../components/GameUndoRedo';
 import { GameSubmitButton } from '../components/GameSubmitButton';
+import { HelpButton } from '../components/game/HelpButton';
+import { HelpPopup } from '../components/game/HelpPopup';
 import { supabase } from '../lib/supabase';
 
 export const DoodleOfTheDay: React.FC = () => {
@@ -15,6 +17,7 @@ export const DoodleOfTheDay: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   useEffect(() => {
     const loadDailyShape = async () => {
@@ -60,6 +63,13 @@ export const DoodleOfTheDay: React.FC = () => {
           gridData: shape.grid_data
         });
 
+        // Show help popup on first visit
+        const hasSeenHelp = sessionStorage.getItem('has_seen_help');
+        if (!hasSeenHelp) {
+          setIsHelpOpen(true);
+          sessionStorage.setItem('has_seen_help', 'true');
+        }
+
       } catch (err) {
         console.error('Error loading daily shape:', err);
         setError('Failed to load today\'s challenge');
@@ -82,7 +92,7 @@ export const DoodleOfTheDay: React.FC = () => {
     }`}>
       {/* Back Button */}
       <motion.div
-        className="fixed top-4 left-4 z-10 pointer-events-none"
+        className="fixed top-4 left-4 z-20 pointer-events-none"
         initial={{ x: -50 }}
         animate={{ x: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
@@ -102,7 +112,7 @@ export const DoodleOfTheDay: React.FC = () => {
       </motion.div>
 
       {/* Theme Toggle and Reset */}
-      <div className="fixed top-0 left-0 w-full flex justify-center items-center pt-4 z-10 pointer-events-none">
+      <div className="fixed top-0 left-0 w-full flex justify-center items-center pt-4 z-20 pointer-events-none">
         <motion.div 
           className="pointer-events-auto inline-flex items-center gap-2 bg-white/10 backdrop-blur-lg p-2 rounded-full"
           initial={{ y: -50 }}
@@ -133,6 +143,12 @@ export const DoodleOfTheDay: React.FC = () => {
           </motion.button>
         </motion.div>
       </div>
+
+      {/* Help Button */}
+      <HelpButton onClick={() => setIsHelpOpen(true)} />
+
+      {/* Help Popup */}
+      <HelpPopup isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
 
       {isLoading ? (
         <div className="flex items-center justify-center h-screen">

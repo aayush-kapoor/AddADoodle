@@ -92,10 +92,7 @@ export const GameSubmitButton: React.FC = () => {
   const [isSuccessPopupOpen, setIsSuccessPopupOpen] = useState(false);
   const [stats, setStats] = useState({
     attempts: 0,
-    correctLines: 0,
-    totalLines: 0,
-    linesUsed: 0,
-    totalLinesLimit: 30
+    linesUsed: 0
   });
   const [solution, setSolution] = useState<Shape | null>(null);
   const lineCount = countUniqueGridLines(gameLines);
@@ -167,10 +164,7 @@ export const GameSubmitButton: React.FC = () => {
     if (totalLinesUsed > (solution.total_lines_limit || 30)) {
       const currentStats = {
         attempts: currentAttempts + 1,
-        correctLines: gameState.correctLines.length,
-        totalLines: lineCount,
-        linesUsed: totalLinesUsed,
-        totalLinesLimit: solution.total_lines_limit
+        linesUsed: totalLinesUsed
       };
       setStats(currentStats);
       sessionStorage.setItem(`doodle_stats_${today}`, JSON.stringify(currentStats));
@@ -183,10 +177,7 @@ export const GameSubmitButton: React.FC = () => {
     if (currentAttempts >= 5) {
       const currentStats = {
         attempts: currentAttempts,
-        correctLines: gameState.correctLines.length,
-        totalLines: lineCount,
-        linesUsed: totalLinesUsed,
-        totalLinesLimit: solution.total_lines_limit
+        linesUsed: totalLinesUsed
       };
       setStats(currentStats);
       sessionStorage.setItem(`doodle_stats_${today}`, JSON.stringify(currentStats));
@@ -211,8 +202,7 @@ export const GameSubmitButton: React.FC = () => {
     if (hasWon) {
       const currentStats = {
         attempts: currentAttempts + 1,
-        linesUsed: uniqueLineCount,
-        totalLinesLimit: solution.total_lines_limit
+        linesUsed: totalLinesUsed
       };
       setStats(currentStats);
       sessionStorage.setItem(`doodle_stats_${today}`, JSON.stringify(currentStats));
@@ -238,10 +228,7 @@ export const GameSubmitButton: React.FC = () => {
       if (correctLines.length < solution.min_lines_required) {
         const currentStats = {
           attempts: currentAttempts + 1,
-          correctLines: correctLines.length,
-          totalLines: uniqueLineCount,
-          linesUsed: totalLinesUsed,
-          totalLinesLimit: solution.total_lines_limit
+          linesUsed: totalLinesUsed
         };
         setStats(currentStats);
         sessionStorage.setItem(`doodle_stats_${today}`, JSON.stringify(currentStats));

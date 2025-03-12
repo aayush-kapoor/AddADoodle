@@ -8,10 +8,7 @@ interface FailurePopupProps {
   onClose: () => void;
   stats: {
     attempts: number;
-    correctLines: number;
-    totalLines: number;
-    linesUsed?: number;
-    totalLinesLimit?: number;
+    linesUsed: number;
   };
 }
 
@@ -46,7 +43,7 @@ export const FailurePopup: React.FC<FailurePopupProps> = ({ isOpen, onClose, sta
                 <X size={20} />
               </button>
 
-              <div className="flex flex-col items-center gap-3 text-center">
+              <div className="flex flex-col items-center gap-6 text-center">
                 <div className="flex flex-col items-center gap-2">
                   <Frown size={28} className="text-red-500" />
                   <h2 className="text-lg font-semibold tracking-tight">Better Luck Tomorrow!</h2>
@@ -57,37 +54,23 @@ export const FailurePopup: React.FC<FailurePopupProps> = ({ isOpen, onClose, sta
 
                 <div className="w-full p-3 rounded-xl bg-white/5">
                   <h3 className="text-sm font-medium mb-2">Today's Stats</h3>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <div className="flex flex-col gap-1">
                       <span className="text-lg font-bold">{stats.attempts}</span>
                       <span className="text-[10px] opacity-60">Attempts</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-lg font-bold">{stats.correctLines}</span>
-                      <span className="text-[10px] opacity-60">Correct</span>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-lg font-bold">{stats.totalLines}</span>
-                      <span className="text-[10px] opacity-60">Total</span>
+                      <span className="text-lg font-bold">{stats.linesUsed}</span>
+                      <span className="text-[10px] opacity-60">Total Lines Used</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="w-full p-3 rounded-xl bg-white/5">
-                  <h3 className="text-sm font-medium mb-2">Lines Used</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-lg font-bold">{stats.linesUsed || 0}</span>
-                      <span className="text-[10px] opacity-60">Used</span>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-lg font-bold">{stats.totalLinesLimit || 30}</span>
-                      <span className="text-[10px] opacity-60">Limit</span>
-                    </div>
-                  </div>
+                <div className="w-full aspect-video rounded-xl bg-white/5 flex items-center justify-center">
+                  <p className="text-xs opacity-60">Today's solution preview coming soon!</p>
                 </div>
 
-                <p className="text-xs opacity-60 mt-2">
+                <p className="text-xs opacity-60">
                   Come back tomorrow for a new challenge!
                 </p>
               </div>
