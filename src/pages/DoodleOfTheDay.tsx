@@ -69,7 +69,9 @@ export const DoodleOfTheDay: React.FC = () => {
           wrongLines: [],
           disabledSegments: savedDisabledSegments,
           correctSegments: savedCorrectSegments,
-          gridData: shape.grid_data
+          gridData: shape.grid_data,
+          imageUrl: shape.image_url,
+          imageAlt: shape.image_alt
         });
 
         // Show help popup on first visit

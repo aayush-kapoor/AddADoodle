@@ -2,6 +2,8 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trophy } from 'lucide-react';
 import { useStore } from '../../store/useStore';
+import { ShapeImage } from './DoodleImage';
+import { ShareButton } from './ShareButton';
 
 interface SuccessPopupProps {
   isOpen: boolean;
@@ -13,7 +15,7 @@ interface SuccessPopupProps {
 }
 
 export const SuccessPopup: React.FC<SuccessPopupProps> = ({ isOpen, onClose, stats }) => {
-  const { theme } = useStore();
+  const { theme, gameState } = useStore();
 
   return (
     <AnimatePresence>
@@ -66,9 +68,18 @@ export const SuccessPopup: React.FC<SuccessPopupProps> = ({ isOpen, onClose, sta
                   </div>
                 </div>
 
-                <div className="w-full aspect-video rounded-xl bg-white/5 flex items-center justify-center">
-                  <p className="text-xs opacity-60">Today's solution preview coming soon!</p>
-                </div>
+                {gameState?.imageUrl ? (
+                  <ShapeImage
+                    imageUrl={gameState.imageUrl}
+                    imageAlt={gameState.imageAlt}
+                  />
+                ) : (
+                  <div className="w-full aspect-video rounded-xl bg-white/5 flex items-center justify-center">
+                    <p className="text-xs opacity-60">No solution preview available</p>
+                  </div>
+                )}
+
+                <ShareButton stats={stats} isSuccess={true} />
 
                 <p className="text-xs opacity-60">
                   Come back tomorrow for a new challenge!
@@ -80,4 +91,4 @@ export const SuccessPopup: React.FC<SuccessPopupProps> = ({ isOpen, onClose, sta
       )}
     </AnimatePresence>
   );
-};
+}

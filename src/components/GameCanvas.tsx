@@ -280,7 +280,7 @@ export const GameCanvas: React.FC = () => {
       if (gameState?.correctSegments.length > 0) {
         ctx.save();
         ctx.globalAlpha = 0.2;
-        ctx.strokeStyle = theme === 'dark' ? 'rgba(0, 255, 128, 0.8)' : 'rgba(0, 200, 100, 0.8)';
+        ctx.strokeStyle = theme === 'dark' ? 'rgba(0, 255, 128, 0.8)' : 'rgba(0, 200, 100, 0.92)';
         ctx.lineWidth = gameLineThickness;
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';

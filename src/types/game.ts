@@ -7,6 +7,8 @@ export interface Shape {
   line_keys: string[];
   active_date: string;
   total_lines_limit: number;
+  image_url?: string | null;
+  image_alt?: string | null;
 }
 
 export interface ShapeGridData {
@@ -61,4 +63,6 @@ export interface GameState {
   correctSegments: string[]; // Store correct line segments
   timeLeft?: number;
   gridData?: ShapeGridData;
+  imageUrl?: string;
+  imageAlt?: string;
 }

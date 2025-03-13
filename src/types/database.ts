@@ -20,6 +20,8 @@ export interface Database {
           active_date: string
           created_at: string | null
           total_lines_limit: number
+          image_url: string | null
+          image_alt: string | null
         }
         Insert: {
           id?: string
@@ -31,6 +33,8 @@ export interface Database {
           active_date: string
           created_at?: string | null
           total_lines_limit?: number
+          image_url?: string | null
+          image_alt?: string | null
         }
         Update: {
           id?: string
@@ -42,6 +46,8 @@ export interface Database {
           active_date?: string
           created_at?: string | null
           total_lines_limit?: number
+          image_url?: string | null
+          image_alt?: string | null
         }
       }
       attempts: {
