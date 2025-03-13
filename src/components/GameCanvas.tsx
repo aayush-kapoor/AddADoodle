@@ -4,7 +4,6 @@ import { Point, DrawingState } from '../types';
 import { GameHeader } from './game/GameHeader';
 import { GridPoint } from '../types/game';
 
-// Constants for grid configuration
 const GRID_DIMENSIONS = 5;
 const MIN_GRID_SIZE = 40;
 const DOT_RADIUS = 2;
@@ -19,14 +18,12 @@ const getDistanceFromPoint = (x1: number, y1: number, x2: number, y2: number): n
 };
 
 const generateLineKey = (start: GridPoint, end: GridPoint): string => {
-  // Sort points to ensure consistent key regardless of direction
   if (start.x < end.x || (start.x === end.x && start.y < end.y)) {
     return `${start.x},${start.y}-${end.x},${end.y}`;
   }
   return `${end.x},${end.y}-${start.x},${start.y}`;
 };
 
-// Helper function to get all existing line keys
 const getExistingLineKeys = (lines: GameLine[]): Set<string> => {
   const keys = new Set<string>();
   lines.forEach(line => {
@@ -170,7 +167,7 @@ export const GameCanvas: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  const screenToGrid = (x: number, y: number): GridPoint => {
+  const screenToGrid = (x: number, y: number): GridPoint | null => {
     const screenX = x - gridOffset.x;
     const screenY = y - gridOffset.y;
     
@@ -193,7 +190,6 @@ export const GameCanvas: React.FC = () => {
     return null;
   };
 
-  // Convert grid coordinates to screen coordinates
   const gridToScreen = (point: GridPoint): Point => {
     return {
       x: point.x * gridSize + gridOffset.x,
@@ -224,7 +220,6 @@ export const GameCanvas: React.FC = () => {
       const start = linePoints[i];
       const end = linePoints[i + 1];
       
-      // For grid-based lines, we can use simpler distance calculation
       if (
         (point.x === start.x && point.y === start.y) ||
         (point.x === end.x && point.y === end.y)
@@ -232,18 +227,15 @@ export const GameCanvas: React.FC = () => {
         return true;
       }
       
-      // Check if point lies on the line segment
       if (
         point.x >= Math.min(start.x, end.x) &&
         point.x <= Math.max(start.x, end.x) &&
         point.y >= Math.min(start.y, end.y) &&
         point.y <= Math.max(start.y, end.y)
       ) {
-        // For straight lines only
         if (start.x === end.x || start.y === end.y) {
           return true;
         }
-        // For diagonal lines
         if (Math.abs(start.x - end.x) === Math.abs(start.y - end.y)) {
           const dx = end.x - start.x;
           const dy = end.y - start.y;
@@ -278,7 +270,6 @@ export const GameCanvas: React.FC = () => {
       if (!ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw grid dots
       for (let x = 0; x < GRID_DIMENSIONS; x++) {
         for (let y = 0; y < GRID_DIMENSIONS; y++) {
           const screenPoint = gridToScreen({ x, y });
@@ -291,7 +282,6 @@ export const GameCanvas: React.FC = () => {
         }
       }
 
-      // Draw correct segments (muted green traces)
       if (gameState?.correctSegments.length > 0) {
         ctx.save();
         ctx.globalAlpha = 0.2;
@@ -319,7 +309,6 @@ export const GameCanvas: React.FC = () => {
         ctx.restore();
       }
 
-      // Draw disabled segments (wrong line traces)
       if (gameState?.disabledSegments.size > 0) {
         ctx.save();
         ctx.globalAlpha = 0.3;
@@ -347,7 +336,6 @@ export const GameCanvas: React.FC = () => {
         ctx.restore();
       }
 
-      // Draw existing lines with validation feedback
       gameLines.forEach(line => {
         if (line.points.length < 2) return;
         
@@ -359,7 +347,6 @@ export const GameCanvas: React.FC = () => {
           ctx.moveTo(start.x, start.y);
           ctx.lineTo(end.x, end.y);
 
-          // Determine segment color based on validation state
           const segmentId = `${line.id}-${i}`;
           if (gameState?.correctLines.includes(segmentId)) {
             ctx.strokeStyle = theme === 'dark' ? 'rgba(0, 255, 128, 0.8)' : 'rgba(0, 200, 100, 0.8)';
@@ -378,7 +365,6 @@ export const GameCanvas: React.FC = () => {
         }
       });
 
-      // Draw current line preview
       if (drawingState.isDrawing && drawingState.currentPoints.length > 0) {
         const screenStart = gridToScreen(drawingState.currentPoints[0]);
         ctx.beginPath();
@@ -397,7 +383,6 @@ export const GameCanvas: React.FC = () => {
         ctx.stroke();
       }
 
-      // Draw hovered point highlight
       if (hoveredPoint && gameTool === 'line') {
         const screenPoint = gridToScreen(hoveredPoint);
         ctx.beginPath();
@@ -458,18 +443,15 @@ export const GameCanvas: React.FC = () => {
         }
       }
 
-      // Check if the new segment would overlap with an existing one or is in disabled segments
       const existingKeys = getExistingLineKeys(gameLines);
       const newSegmentKey = generateLineKey(lastPoint, gridPoint);
       
-      // Don't add the point if the segment already exists or is disabled
       if (existingKeys.has(newSegmentKey)) {
         return;
       }
 
       const intermediatePoints = findIntermediateGridPoints(lastPoint, gridPoint);
       
-      // Check each intermediate segment
       let canAddPoints = true;
       for (let i = 0; i < intermediatePoints.length; i++) {
         const start = i === 0 ? lastPoint : intermediatePoints[i - 1];
@@ -497,9 +479,7 @@ export const GameCanvas: React.FC = () => {
     const y = e.clientY - rect.top;
     const gridPoint = screenToGrid(x, y);
 
-    // Reset validation colors and remove wrong segments
     if (gameState?.wrongLines.length) {
-      // Remove wrong segments while keeping correct ones
       removeGameLineSegments(gameState.wrongLines);
       
       setGameState({
@@ -518,7 +498,6 @@ export const GameCanvas: React.FC = () => {
     
     if (gameTool !== 'line') return;
 
-    // Check if starting point is on a disabled segment
     if (gameState?.disabledSegments.size) {
       const isDisabled = Array.from(gameState.disabledSegments).some(segmentId => {
         const [lineId, segmentIndex] = segmentId.split('-');
@@ -532,6 +511,7 @@ export const GameCanvas: React.FC = () => {
       });
 
       if (isDisabled) return;
+      if (!gridPoint) return;
     }
 
     setDrawingState({
@@ -557,7 +537,6 @@ export const GameCanvas: React.FC = () => {
       return;
     }
 
-    // Check if any part of the line intersects with disabled segments
     const hasDisabledIntersection = drawingState.currentPoints.some((point, i) => {
       if (i === 0) return false;
       const prevPoint = drawingState.currentPoints[i - 1];
