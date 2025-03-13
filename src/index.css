@@ -44,6 +44,16 @@ body {
   height: 100%;
 }
 
+/* Add padding to main content area to prevent footer overlap */
+.main-content {
+  padding-bottom: 4rem; /* Matches footer height */
+}
+
+/* Adjust bottom spacing for fixed elements */
+.fixed.bottom-4 {
+  bottom: calc(1rem + 2.5rem); /* Original bottom + footer height */
+}
+
 .glass-morphism {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(20px);

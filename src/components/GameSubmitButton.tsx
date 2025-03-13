@@ -161,8 +161,6 @@ export const GameSubmitButton: React.FC = () => {
     );
     console.log('Current Line Keys on Submit:', currentLineKeys);
 
-    
-
     const today = new Date().toISOString().split('T')[0];
     const attemptsKey = `doodle_attempts_${today}`;
     const currentAttempts = parseInt(sessionStorage.getItem(attemptsKey) || '0');
@@ -254,7 +252,7 @@ export const GameSubmitButton: React.FC = () => {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 flex justify-center items-center pb-4 z-10 pointer-events-none">
+      <div className="fixed bottom-0 left-0 right-0 flex justify-center items-center pb-14 z-10 pointer-events-none">
         <motion.div
           className="pointer-events-auto"
           initial={{ y: 50 }}
