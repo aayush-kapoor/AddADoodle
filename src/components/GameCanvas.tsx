@@ -416,6 +416,7 @@ export const GameCanvas: React.FC = () => {
     const y = e.clientY - rect.top;
     const gridPoint = screenToGrid(x, y);
 
+    // Only update hover states if we have a valid grid point
     if (e.pointerType === 'mouse') {
       setHoveredPoint(gridPoint);
     }
@@ -427,11 +428,12 @@ export const GameCanvas: React.FC = () => {
       setHoveredLine(null);
     }
 
+    // Only handle line drawing if we have a valid grid point and are in drawing mode
     if (drawingState.isDrawing && gameTool === 'line' && gridPoint) {
       const lastPoint = drawingState.currentPoints[drawingState.currentPoints.length - 1];
-      
       if (!lastPoint) return;
 
+      // Check for backtracking
       if (drawingState.currentPoints.length > 1) {
         const secondLastPoint = drawingState.currentPoints[drawingState.currentPoints.length - 2];
         if (gridPoint.x === secondLastPoint.x && gridPoint.y === secondLastPoint.y) {
@@ -443,6 +445,7 @@ export const GameCanvas: React.FC = () => {
         }
       }
 
+      // Check for existing lines
       const existingKeys = getExistingLineKeys(gameLines);
       const newSegmentKey = generateLineKey(lastPoint, gridPoint);
       
@@ -450,6 +453,7 @@ export const GameCanvas: React.FC = () => {
         return;
       }
 
+      // Find and validate intermediate points
       const intermediatePoints = findIntermediateGridPoints(lastPoint, gridPoint);
       
       let canAddPoints = true;
@@ -479,9 +483,12 @@ export const GameCanvas: React.FC = () => {
     const y = e.clientY - rect.top;
     const gridPoint = screenToGrid(x, y);
 
+    // Only proceed if we have a valid grid point
+    if (!gridPoint) return;
+
+    // Handle validation state reset
     if (gameState?.wrongLines.length) {
       removeGameLineSegments(gameState.wrongLines);
-      
       setGameState({
         ...gameState,
         wrongLines: [],
@@ -489,6 +496,7 @@ export const GameCanvas: React.FC = () => {
       });
     }
 
+    // Handle eraser tool
     if (gameTool === 'eraser') {
       if (hoveredLine) {
         eraseGameLine(hoveredLine);
@@ -498,6 +506,7 @@ export const GameCanvas: React.FC = () => {
     
     if (gameTool !== 'line') return;
 
+    // Check for disabled segments
     if (gameState?.disabledSegments.size) {
       const isDisabled = Array.from(gameState.disabledSegments).some(segmentId => {
         const [lineId, segmentIndex] = segmentId.split('-');
@@ -511,9 +520,9 @@ export const GameCanvas: React.FC = () => {
       });
 
       if (isDisabled) return;
-      if (!gridPoint) return;
     }
 
+    // Start drawing
     setDrawingState({
       isDrawing: true,
       startPoint: gridPoint,
