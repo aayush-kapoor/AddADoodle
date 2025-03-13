@@ -276,11 +276,39 @@ export const GameCanvas: React.FC = () => {
         }
       }
 
-      // Draw disabled segments (wrong line traces) first
+      // Draw correct segments (muted green traces)
+      if (gameState?.correctSegments.length > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.2;
+        ctx.strokeStyle = theme === 'dark' ? 'rgba(0, 255, 128, 0.8)' : 'rgba(0, 200, 100, 0.8)';
+        ctx.lineWidth = gameLineThickness;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        gameState.drawnLines.forEach(line => {
+          if (line.points.length < 2) return;
+          
+          for (let i = 0; i < line.points.length - 1; i++) {
+            const segmentId = `${line.id}-${i}`;
+            if (gameState.correctSegments.includes(segmentId)) {
+              const start = gridToScreen(line.points[i]);
+              const end = gridToScreen(line.points[i + 1]);
+              
+              ctx.beginPath();
+              ctx.moveTo(start.x, start.y);
+              ctx.lineTo(end.x, end.y);
+              ctx.stroke();
+            }
+          }
+        });
+        ctx.restore();
+      }
+
+      // Draw disabled segments (wrong line traces)
       if (gameState?.disabledSegments.size > 0) {
         ctx.save();
         ctx.globalAlpha = 0.3;
-        ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 0, 0, 0.5)';
+        ctx.strokeStyle = theme === 'dark' ? 'rgba(255, 0, 0, 0.6)' : 'rgba(255, 0, 0, 0.6)';
         ctx.lineWidth = gameLineThickness;
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
