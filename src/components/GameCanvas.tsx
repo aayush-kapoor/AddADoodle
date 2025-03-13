@@ -10,8 +10,14 @@ const MIN_GRID_SIZE = 40;
 const DOT_RADIUS = 2;
 const HIGHLIGHT_RADIUS = 3;
 const LINE_HOVER_THRESHOLD = 2;
+const SNAP_RADIUS = 20;
 
-// Helper function to generate line key
+const getDistanceFromPoint = (x1: number, y1: number, x2: number, y2: number): number => {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  return Math.sqrt(dx * dx + dy * dy);
+};
+
 const generateLineKey = (start: GridPoint, end: GridPoint): string => {
   // Sort points to ensure consistent key regardless of direction
   if (start.x < end.x || (start.x === end.x && start.y < end.y)) {
@@ -164,18 +170,27 @@ export const GameCanvas: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Convert screen coordinates to grid coordinates
-  const screenToGrid = (x: number, y: number): GridPoint => {
+  const screenToGrid = (x: number, y: number): GridPoint | null => {
     const screenX = x - gridOffset.x;
     const screenY = y - gridOffset.y;
     
-    const gridX = Math.round(screenX / gridSize);
-    const gridY = Math.round(screenY / gridSize);
+    for (let gridX = 0; gridX < GRID_DIMENSIONS; gridX++) {
+      for (let gridY = 0; gridY < GRID_DIMENSIONS; gridY++) {
+        const pointX = gridX * gridSize + gridOffset.x;
+        const pointY = gridY * gridSize + gridOffset.y;
+        
+        const distance = getDistanceFromPoint(x, y, pointX, pointY);
+        
+        if (distance <= SNAP_RADIUS) {
+          return {
+            x: gridX,
+            y: gridY
+          };
+        }
+      }
+    }
     
-    return {
-      x: Math.max(0, Math.min(GRID_DIMENSIONS - 1, gridX)),
-      y: Math.max(0, Math.min(GRID_DIMENSIONS - 1, gridY))
-    };
+    return null;
   };
 
   // Convert grid coordinates to screen coordinates
