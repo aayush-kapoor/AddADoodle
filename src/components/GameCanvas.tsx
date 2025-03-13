@@ -170,7 +170,7 @@ export const GameCanvas: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  const screenToGrid = (x: number, y: number): GridPoint | null => {
+  const screenToGrid = (x: number, y: number): GridPoint => {
     const screenX = x - gridOffset.x;
     const screenY = y - gridOffset.y;
     
