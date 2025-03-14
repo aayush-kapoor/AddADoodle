@@ -79,12 +79,43 @@ export interface Database {
           created_at?: string | null
         }
       }
+      game_results: {
+        Row: {
+          id: string
+          date: string
+          success: boolean
+          attempts: number
+          lines_used: number
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          date: string
+          success: boolean
+          attempts: number
+          lines_used: number
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          date?: string
+          success?: boolean
+          attempts?: number
+          lines_used?: number
+          created_at?: string | null
+        }
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_daily_stats: {
+        Args: {
+          target_date: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

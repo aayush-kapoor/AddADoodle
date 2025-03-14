@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trophy } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { ShapeImage } from './DoodleImage';
 import { ShareButton } from './ShareButton';
+import { submitGameResult } from '../../lib/supabase';
 
 interface SuccessPopupProps {
   isOpen: boolean;
@@ -16,6 +17,12 @@ interface SuccessPopupProps {
 
 export const SuccessPopup: React.FC<SuccessPopupProps> = ({ isOpen, onClose, stats }) => {
   const { theme, gameState } = useStore();
+
+  useEffect(() => {
+    if (isOpen) {
+      submitGameResult(true, stats.attempts, stats.linesUsed);
+    }
+  }, [isOpen, stats]);
 
   return (
     <AnimatePresence>

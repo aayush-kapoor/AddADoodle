@@ -9,3 +9,26 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+
+export const submitGameResult = async (
+  success: boolean,
+  attempts: number,
+  linesUsed: number
+) => {
+  try {
+    const { error } = await supabase
+      .from('game_results')
+      .insert({
+        date: new Date().toISOString().split('T')[0],
+        success,
+        attempts,
+        lines_used: linesUsed
+      });
+
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error('Error submitting game result:', err);
+    return false;
+  }
+};

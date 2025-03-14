@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Frown } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { ShapeImage } from './DoodleImage';
 import { ShareButton } from './ShareButton';
+import { submitGameResult } from '../../lib/supabase';
 
 interface FailurePopupProps {
   isOpen: boolean;
@@ -16,6 +17,12 @@ interface FailurePopupProps {
 
 export const FailurePopup: React.FC<FailurePopupProps> = ({ isOpen, onClose, stats }) => {
   const { theme, gameState } = useStore();
+
+  useEffect(() => {
+    if (isOpen) {
+      submitGameResult(false, stats.attempts, stats.linesUsed);
+    }
+  }, [isOpen, stats]);
 
   return (
     <AnimatePresence>
