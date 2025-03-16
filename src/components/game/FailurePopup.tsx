@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Frown } from 'lucide-react';
 import { useStore } from '../../store/useStore';
-import { ShapeImage } from './ShapeImage';
+import { ShapeImage } from './DoodleImage';
 import { ShareButton } from './ShareButton';
 import { submitGameResult } from '../../lib/supabase';
 
