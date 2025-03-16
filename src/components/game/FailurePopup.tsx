@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Frown } from 'lucide-react';
 import { useStore } from '../../store/useStore';
-import { ShapeImage } from './DoodleImage';
+import { ShapeImage } from './ShapeImage';
 import { ShareButton } from './ShareButton';
 import { submitGameResult } from '../../lib/supabase';
 
@@ -20,7 +20,13 @@ export const FailurePopup: React.FC<FailurePopupProps> = ({ isOpen, onClose, sta
 
   useEffect(() => {
     if (isOpen) {
-      submitGameResult(false, stats.attempts, stats.linesUsed);
+      const today = new Date().toISOString().split('T')[0];
+      const resultSubmitted = sessionStorage.getItem(`result_submitted_${today}`);
+      
+      if (!resultSubmitted) {
+        submitGameResult(false, stats.attempts, stats.linesUsed);
+        sessionStorage.setItem(`result_submitted_${today}`, 'true');
+      }
     }
   }, [isOpen, stats]);
 
