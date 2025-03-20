@@ -23,7 +23,7 @@ export const ShareButton: React.FC<ShareButtonProps> = ({ stats, isSuccess }) =>
     });
 
     const resultEmoji = isSuccess ? '✅' : '❌';
-    const shareText = `DoodleOfTheDay ${today} ${resultEmoji}\n${stats.attempts} / 5\n${stats.linesUsed} / ${gameState?.totalLinesLimit || 30}`;
+    const shareText = `DoodleOfTheDay ${today} ${resultEmoji}\n${stats.attempts} / 5\n${stats.linesUsed} / ${gameState?.totalLinesLimit || 30}\n\naddadoodle.com/doodleoftheday`;
 
     try {
       await navigator.clipboard.writeText(shareText);
