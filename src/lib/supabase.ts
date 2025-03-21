@@ -19,7 +19,7 @@ export const submitGameResult = async (
     const { error } = await supabase
       .from('game_results')
       .insert({
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toLocaleDateString('en-CA'),
         success,
         attempts,
         lines_used: linesUsed

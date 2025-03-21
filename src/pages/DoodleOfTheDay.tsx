@@ -22,7 +22,9 @@ export const DoodleOfTheDay: React.FC = () => {
   useEffect(() => {
     const loadDailyShape = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0];
+        // Get local date in YYYY-MM-DD format
+        const today = new Date().toLocaleDateString('en-CA');
+        
         const { data: shape, error } = await supabase
           .from('shapes')
           .select('*')
@@ -36,7 +38,7 @@ export const DoodleOfTheDay: React.FC = () => {
           return;
         }
 
-        // Get current attempt number from session storage
+        // Get current attempt number from session storage using local date
         const attemptsKey = `doodle_attempts_${today}`;
         const currentAttempts = parseInt(sessionStorage.getItem(attemptsKey) || '0');
 
@@ -94,7 +96,7 @@ export const DoodleOfTheDay: React.FC = () => {
 
   // Save current lines to session storage whenever they change
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('en-CA');
     const linesKey = `doodle_current_lines_${today}`;
     sessionStorage.setItem(linesKey, JSON.stringify(gameLines));
   }, [gameLines]);
@@ -103,7 +105,7 @@ export const DoodleOfTheDay: React.FC = () => {
   useEffect(() => {
     if (!gameState) return;
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('en-CA');
     
     // Save disabled segments
     const disabledSegmentsKey = `doodle_disabled_segments_${today}`;
@@ -118,7 +120,7 @@ export const DoodleOfTheDay: React.FC = () => {
     if (!gameState || gameLines.length === 0) return;
     
     // Clear current lines from session storage
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('en-CA');
     const linesKey = `doodle_current_lines_${today}`;
     sessionStorage.setItem(linesKey, JSON.stringify([]));
     

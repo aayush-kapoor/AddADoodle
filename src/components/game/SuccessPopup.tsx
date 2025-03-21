@@ -20,7 +20,7 @@ export const SuccessPopup: React.FC<SuccessPopupProps> = ({ isOpen, onClose, sta
 
   useEffect(() => {
     if (isOpen) {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toLocaleDateString('en-CA');
       const resultSubmitted = sessionStorage.getItem(`result_submitted_${today}`);
       
       if (!resultSubmitted) {

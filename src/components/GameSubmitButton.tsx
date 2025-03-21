@@ -105,7 +105,7 @@ export const GameSubmitButton: React.FC = () => {
   useEffect(() => {
     const fetchSolution = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString('en-CA');
         const { data, error } = await supabase
           .from('shapes')
           .select('*')
@@ -122,7 +122,7 @@ export const GameSubmitButton: React.FC = () => {
     fetchSolution();
 
     // Check for existing game result
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('en-CA');
     const gameResultKey = `doodle_result_${today}`;
     const savedResult = sessionStorage.getItem(gameResultKey);
     const savedStats = JSON.parse(sessionStorage.getItem(`doodle_stats_${today}`) || '{}');
@@ -143,7 +143,7 @@ export const GameSubmitButton: React.FC = () => {
   
     // If game is already completed for today, just show the appropriate popup
     if (gameCompleted) {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toLocaleDateString('en-CA');
       const gameResultKey = `doodle_result_${today}`;
       const savedResult = sessionStorage.getItem(gameResultKey);
       if (savedResult === 'success') {
@@ -161,7 +161,7 @@ export const GameSubmitButton: React.FC = () => {
     );
     console.log('Current Line Keys on Submit:', currentLineKeys);
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('en-CA');
     const attemptsKey = `doodle_attempts_${today}`;
     const currentAttempts = parseInt(sessionStorage.getItem(attemptsKey) || '0');
 

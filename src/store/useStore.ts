@@ -197,7 +197,7 @@ export const useStore = create<DoodleState>()(
       setGameTool: (tool) => set({ gameTool: tool }),
       addGameLine: (line) => set((state) => {
         const newLines = [...state.gameLines, line];
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString('en-CA');
         sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(newLines));
         return {
           gameLines: newLines,
@@ -207,7 +207,7 @@ export const useStore = create<DoodleState>()(
       }),
       removeGameLine: (id) => set((state) => {
         const newLines = state.gameLines.filter((line) => line.id !== id);
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString('en-CA');
         sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(newLines));
         return { gameLines: newLines };
       }),
@@ -215,7 +215,7 @@ export const useStore = create<DoodleState>()(
       gameUndo: () => set((state) => {
         if (state.gameUndoStack.length === 0) return state;
         const previousLines = state.gameUndoStack[state.gameUndoStack.length - 1];
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString('en-CA');
         sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(previousLines));
         return {
           gameLines: previousLines,
@@ -226,7 +226,7 @@ export const useStore = create<DoodleState>()(
       gameRedo: () => set((state) => {
         if (state.gameRedoStack.length === 0) return state;
         const nextLines = state.gameRedoStack[0];
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString('en-CA');
         sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(nextLines));
         return {
           gameLines: nextLines,
@@ -236,7 +236,7 @@ export const useStore = create<DoodleState>()(
       }),
       eraseGameLine: (id) => set((state) => {
         const newLines = state.gameLines.filter(line => line.id !== id);
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString('en-CA');
         sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(newLines));
         return {
           gameLines: newLines,
@@ -245,7 +245,7 @@ export const useStore = create<DoodleState>()(
         };
       }),
       clearGameLines: () => set((state) => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString('en-CA');
         sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify([]));
         return {
           gameLines: [],
@@ -298,7 +298,7 @@ export const useStore = create<DoodleState>()(
           }
         });
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString('en-CA');
         sessionStorage.setItem(`doodle_lines_${today}`, JSON.stringify(newLines));
 
         return {

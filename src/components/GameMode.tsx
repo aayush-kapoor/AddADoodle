@@ -15,7 +15,7 @@ export const GameMode: React.FC = () => {
   useEffect(() => {
     const loadDailyShape = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString('en-CA');
         const { data: shape, error } = await supabase
           .from('shapes')
           .select('*')
