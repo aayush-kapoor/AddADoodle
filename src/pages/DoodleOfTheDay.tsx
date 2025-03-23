@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Sun, Moon, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Sun, Moon, RotateCcw, Upload } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { GameCanvas } from '../components/GameCanvas';
 import { GameHeader } from '../components/game/GameHeader';
@@ -131,13 +131,8 @@ export const DoodleOfTheDay: React.FC = () => {
     <div className={`min-h-screen ${
       theme === 'dark' ? 'bg-black text-white theme-dark' : 'bg-white text-black theme-light'
     }`}>
-      {/* Back Button */}
-      <motion.div
-        className="fixed top-4 left-4 z-20 pointer-events-none"
-        initial={{ x: -50 }}
-        animate={{ x: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      >
+      {/* Navigation Buttons */}
+      <div className="fixed top-4 left-4 z-20 flex items-center gap-2 pointer-events-none">
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
@@ -147,10 +142,29 @@ export const DoodleOfTheDay: React.FC = () => {
               ? 'hover:bg-white/20'
               : 'hover:bg-black/20'
           }`}
+          initial={{ x: -50 }}
+          animate={{ x: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         >
           <ArrowLeft size={20} />
         </motion.button>
-      </motion.div>
+
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate('/submitdoodle')}
+          className={`pointer-events-auto inline-block bg-white/10 backdrop-blur-lg p-4 rounded-full transition-colors ${
+            theme === 'dark'
+              ? 'hover:bg-white/20'
+              : 'hover:bg-black/20'
+          }`}
+          initial={{ x: -50 }}
+          animate={{ x: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.1 }}
+        >
+          <Upload size={20} />
+        </motion.button>
+      </div>
 
       {/* Theme Toggle and Reset */}
       <div className="fixed top-0 left-0 w-full flex justify-center items-center pt-4 z-20 pointer-events-none">

@@ -26,6 +26,13 @@ interface DoodleState {
   gameMode: boolean;
   gameState: GameState | null;
 
+  // Submit Canvas State
+  submitTool: Tool;
+  submitLines: GameLine[];
+  submitLineThickness: number;
+  submitUndoStack: GameLine[][];
+  submitRedoStack: GameLine[][];
+
   // Shared State
   theme: Theme;
 
@@ -64,6 +71,17 @@ interface DoodleState {
   removeGameLineSegments: (segmentIds: string[]) => void;
   getGameLineSegments: () => LineSegment[];
 
+  // Submit Canvas Actions
+  setSubmitTool: (tool: Tool) => void;
+  addSubmitLine: (line: GameLine) => void;
+  removeSubmitLine: (id: string) => void;
+  setSubmitLineThickness: (thickness: number) => void;
+  submitUndo: () => void;
+  submitRedo: () => void;
+  eraseSubmitLine: (id: string) => void;
+  clearSubmitLines: () => void;
+  setSubmitLines: (lines: GameLine[]) => void;
+
   // Shared Actions
   toggleTheme: () => void;
 }
@@ -92,6 +110,13 @@ export const useStore = create<DoodleState>()(
       gameRedoStack: [],
       gameMode: false,
       gameState: null,
+
+      // Submit Canvas Initial State
+      submitTool: 'line',
+      submitLines: [],
+      submitLineThickness: 4,
+      submitUndoStack: [],
+      submitRedoStack: [],
 
       // Shared Initial State
       theme: 'dark',
@@ -327,6 +352,47 @@ export const useStore = create<DoodleState>()(
         return segments;
       },
 
+      // Submit Canvas Actions
+      setSubmitTool: (tool) => set({ submitTool: tool }),
+      addSubmitLine: (line) => set((state) => ({
+        submitLines: [...state.submitLines, line],
+        submitUndoStack: [...state.submitUndoStack, state.submitLines],
+        submitRedoStack: []
+      })),
+      removeSubmitLine: (id) => set((state) => ({
+        submitLines: state.submitLines.filter((line) => line.id !== id)
+      })),
+      setSubmitLineThickness: (thickness) => set({ submitLineThickness: thickness }),
+      submitUndo: () => set((state) => {
+        if (state.submitUndoStack.length === 0) return state;
+        const previousLines = state.submitUndoStack[state.submitUndoStack.length - 1];
+        return {
+          submitLines: previousLines,
+          submitUndoStack: state.submitUndoStack.slice(0, -1),
+          submitRedoStack: [state.submitLines, ...state.submitRedoStack]
+        };
+      }),
+      submitRedo: () => set((state) => {
+        if (state.submitRedoStack.length === 0) return state;
+        const nextLines = state.submitRedoStack[0];
+        return {
+          submitLines: nextLines,
+          submitUndoStack: [...state.submitUndoStack, state.submitLines],
+          submitRedoStack: state.submitRedoStack.slice(1)
+        };
+      }),
+      eraseSubmitLine: (id) => set((state) => ({
+        submitLines: state.submitLines.filter(line => line.id !== id),
+        submitUndoStack: [...state.submitUndoStack, state.submitLines],
+        submitRedoStack: []
+      })),
+      clearSubmitLines: () => set((state) => ({
+        submitLines: [],
+        submitUndoStack: [...state.submitUndoStack, state.submitLines],
+        submitRedoStack: []
+      })),
+      setSubmitLines: (lines) => set({ submitLines: lines }),
+
       // Shared Actions
       toggleTheme: () => set((state) => {
         const newTheme = state.theme === 'dark' ? 'light' : 'dark';
@@ -342,11 +408,17 @@ export const useStore = create<DoodleState>()(
           color: line.color === '#FFFFFF' ? '#000000' : '#FFFFFF'
         }));
 
+        const updatedSubmitLines = state.submitLines.map(line => ({
+          ...line,
+          color: line.color === '#FFFFFF' ? '#000000' : '#FFFFFF'
+        }));
+
         return {
           theme: newTheme,
           selectedColor: newColor,
           lines: updatedLines,
-          gameLines: updatedGameLines
+          gameLines: updatedGameLines,
+          submitLines: updatedSubmitLines
         };
       })
     }),
