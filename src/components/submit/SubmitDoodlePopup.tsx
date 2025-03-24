@@ -5,7 +5,7 @@ import { useStore } from '../../store/useStore';
 import { SubmitPreviewCanvas } from './SubmitPreviewCanvas';
 import html2canvas from 'html2canvas';
 import { supabase } from '../../lib/supabase';
-import { Alert } from '../ui/Alert';
+import { Alert } from '../ui/alert';
 
 interface SubmitDoodlePopupProps {
   isOpen: boolean;
