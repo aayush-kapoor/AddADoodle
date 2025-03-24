@@ -6,6 +6,7 @@ import { useStore } from '../store/useStore';
 import { SubmitCanvas } from '../components/submit/SubmitCanvas';
 import { SubmitToolbar } from '../components/submit/SubmitToolbar';
 import { SubmitUndoRedo } from '../components/submit/SubmitUndoRedo';
+import { SubmitButton } from '../components/submit/SubmitButton';
 
 export const SubmitDoodle: React.FC = () => {
   const { theme, toggleTheme, submitLines, clearSubmitLines } = useStore();
@@ -99,6 +100,7 @@ export const SubmitDoodle: React.FC = () => {
       <SubmitCanvas />
       <SubmitToolbar />
       <SubmitUndoRedo />
+      <SubmitButton />
     </div>
   );
 };

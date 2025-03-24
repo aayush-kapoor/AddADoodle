@@ -88,6 +88,11 @@ export const SubmitCanvas: React.FC = () => {
   }, [calculateResponsiveGrid]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Ignore keyboard shortcuts if we're in a text input
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
     const cmdKey = isMac ? e.metaKey : e.ctrlKey;
 
