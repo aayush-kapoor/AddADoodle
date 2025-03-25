@@ -33,13 +33,29 @@ export const Home: React.FC = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/submitdoodle')}
-            className={`pointer-events-auto inline-block bg-white/10 backdrop-blur-lg p-4 rounded-full transition-colors ${
+            className={`pointer-events-auto inline-block bg-gradient-to-r from-white via-pink-300 via-pink-500 to-purple-500 p-4 rounded-full transition-colors relative overflow-hidden ${
               theme === 'dark'
-                ? 'hover:bg-white/20'
-                : 'hover:bg-black/20'
+                ? 'hover:brightness-110'
+                : 'hover:brightness-90'
             }`}
           >
-            <Upload size={20} />
+            <Upload size={20} className="text-black relative z-10" />
+            <span 
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 50%)',
+                animation: 'sparkle 2s infinite'
+              }}
+            />
+            <style>
+              {`
+                @keyframes sparkle {
+                  0% { transform: translate(0, 0); opacity: 0.8; }
+                  50% { transform: translate(2px, 2px); opacity: 0.4; }
+                  100% { transform: translate(0, 0); opacity: 0.8; }
+                }
+              `}
+            </style>
           </motion.button>
         </motion.div>
 
